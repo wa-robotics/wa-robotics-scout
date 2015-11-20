@@ -1,0 +1,248 @@
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>
+  /**
+   * Run initializations on dialog load.
+   */
+   
+  //global variables
+  var sku;
+  
+  $(function() {
+    // Assign handler functions to dialog elements here, if needed.
+    $('#dialog-execute-button').click(onExecuteClick);
+    //insert currently defined tournament SKU value if one exists
+    /*var sku = getRow("DB_SETTINGS",{key:"roboteventssku"}, "data");
+    SpreadsheetApp.getUi().alert(sku);
+    if (sku !== -1) {
+    $('#tournament-sku').val(sku);
+    }
+    Logger.log(sku);
+*/
+    // Call the server here to retrieve any information needed to build
+    // the dialog, if necessary.
+    getPreviouslySavedSetting("roboteventssku", "tournament-sku", "textInput", false,"");
+    console.log("Line 20 sku " + sku);
+    console.log("What happens when getPreviouslySavedSetting(key) is called: " + getPreviouslySavedSetting("roboteventssku"));
+    $('#form-links').empty();
+    getPreviouslySavedSetting("scoutingformurl", "form-links", "divAppend",true, "Scouting form");
+    getPreviouslySavedSetting("interviewformurl","form-links","divAppend",true, "Interview form");
+    //var mode = getPreviouslySavedSetting("mode");
+    console.log("Line 22 mode " + mode);
+    //$('#tournament-sku').val("This is a test");
+    $('#script-mode').val(mode);
+  });
+
+  /**
+   * Calls the server to save the new SKU value,
+   * TODO: Only call server if the value actually changed
+   */
+  function onExecuteClick() {
+    this.disabled = true;
+    showStatus('Please wait...');
+    // Gather any information that needs to be sent to the server here.
+
+    var sku = $('#tournament-sku').val().trim(); //ensure integrity by removing leading and trailing spaces
+
+    //var oldSku = getRow("DB_SETTINGS", {key:"roboteventssku"},"data").value;
+    //showStatus(oldSku);
+    var mode = $('#script-mode').val();
+    //var oldMode = getRow("DB_SETTINGS",{key:"mode"},"data").value;
+    
+    /*var confirmSkuOverwrite = sku !== "" ? false : true;
+    if (!confirmSkuOverwrite) { //don't need to ask to overwrite tournament SKU with blank value
+      showStatus('Saving...');
+    }
+    else { //will need to give user an additional prompts
+      showStatus('Please wait...');
+    }*/
+    var success = true;
+    //var overwriteSku = false;
+    // Send the value to the server and handle the response.
+    //if (sku !== "") { //only save SKU if the value is not blank
+    var result;
+    var executionStatuses = [false, false];
+    for (var attempt = 1; attempt <= 2; attempt++) { //because savePrefs function cannot be run concurrently, try again if it fails the first time  
+      success = true;
+      google.script.run
+          .withSuccessHandler(
+            function(returnVal, element) {
+              // Respond to success conditions here.
+              //element.disabled = false;
+              executionStatuses[0] = true;
+              console.log("save sku done");
+              checkExecutionStatuses(executionStatuses);
+            })
+          .withFailureHandler(
+            function(error, element) {
+              // Respond to failure conditions here.
+              showStatus('Execution failed: ' + error, 'error.');
+              //element.disabled = false;
+              success = false;
+            })
+          .savePrefs("roboteventssku",sku);
+      
+      if (success) { //if the function ran successfully, stop attempting
+         break;
+      }
+      //otherwise, try again
+      
+      }
+     // } /*else {
+        /*overwriteSku = showAlert("Overwrite event code?","You left the RobotEvents Event Code field blank.  Do you want to save the blank value?", "CONFIRM_CONTINUE");
+       if(overwriteSku) {
+           google.script.run
+            .withSuccessHandler(
+              function(msg) {
+                // Respond to success conditions here
+                //element.disabled = false;
+              })
+            .withFailureHandler(
+              function(msg, element) {
+                // Respond to failure conditions here.
+                showStatus('Execution failed: ' + msg, 'error');
+                //element.disabled = false;
+              })
+            .savePrefs("roboteventssku","");
+            */
+           //askOverwriteSku();
+        //}
+      //}
+     
+
+    for (attempt = 1; attempt <= 2; attempt++) { //because savePrefs function cannot be run concurrently, try again if it fails the first time      
+       success = true;
+       google.script.run
+         .withSuccessHandler(
+            function(msg, element) {
+              // Respond to success conditions here.
+              executionStatuses[1] = true;
+              console.log("changeMode done");
+              checkExecutionStatuses(executionStatuses);
+            })
+         .withFailureHandler(
+            function(error, element) {
+              // Respond to failure conditions here.
+              showStatus('Execution failed: ' + error, 'error');
+              //element.disabled = false;
+            })
+         .changeMode(mode);
+        if (success) { //if the function ran successfully, stop attempting
+         break;
+      }      
+    }
+    
+  }
+
+  /**
+   * Displays the given status message in the dialog.
+   *
+   * @param {String} msg The status message to display.
+   * @param {String} classId The message type (class id) that the message
+   *   should be displayed as.
+   */
+  function showStatus(msg, classId) {
+    $('#dialog-status').removeClass().html(msg);
+    if (classId) {
+      $('#dialog-status').addClass(classId);
+    }
+  }
+  
+  function askOverwriteSku() {
+    google.script.run
+      .withSuccessHandler(
+        function (result) {
+          if(overwriteSku) {
+           google.script.run
+            .withSuccessHandler(
+              function(msg) {
+                // Respond to success conditions here
+                //element.disabled = false;
+              })
+            .withFailureHandler(
+              function(msg, element) {
+                // Respond to failure conditions here.
+                showStatus('Execution failed: ' + msg, 'error');
+                //element.disabled = false;
+              })
+            .savePrefs("roboteventssku","");
+        }
+        })
+      .withFailureHandler( 
+        function () {
+        
+        })
+      .showAlert("Overwrite event code?","You left the RobotEvents Event Code field blank.  Do you want to save the blank value?", "CONFIRM_CONTINUE");
+  }
+  /** TODO: make this work
+  * Look for an existing value of a key in Settings
+  * @param key The settings key to look for the value of
+  * @param id The ID of the element to put the value found (if any) in; do not include the #
+  * @param mode Either "textInput" if the value should go in a text input, "dropdown" if the value should be the value a dropdown menu is set to,
+  *               "divAppend" if the value should be appended to the contents of a div, or "divReplace" if the value of a div should be erased and replaced
+  *               with the result
+  * @param linkExpected (only applies to "divReplace" and "divAppend" modes) True of false; true checks if the value starts with "http" (which will also catch "https"), and if so, surrounds the value with <a> tags for HTML; if false, does nothing
+  * @return The value of the settings key specified, or -1 if it doesn't exist
+  */
+  function getPreviouslySavedSetting(key, id, mode, linkExpected, linkShortname) {
+      var result;
+      id = '#' + id;
+      google.script.run
+      .withSuccessHandler(
+         function (row) {
+           result = row.value;
+           console.log("In getPreviouslySavedSetting, row = " + row);
+           console.log("In getPreviouslySavedSetting, row.value = " + row.value);
+           console.log(row.value);
+           if(result !== -1 && result !== "") { //if the setting specified was found and has a value
+             console.log("result.substring(0,4) " + result.substring(0,4));
+             if (linkExpected && result.substring(0,4)) {
+               var link = result;
+               result = "<a href=\"" + link + "\">" + linkShortname + "</a><br />";
+             }
+             if(((key === "interviewformurl") && ($('#form-links').is(':empty') || result === ""))) { //catches cases specifc to loading form links - if the scouting form URL wasn't found, the div 
+                                                                                                     //for form links will be empty; if so, then we can just append the error message; otherwise, the
+                                                                                                     //switch statement will run.  If the interview form URL is unavailable, then we need to empty the
+                                                                                                     //form links div in case the scouting form URL was found and then add the error message.  
+               $('#form-links').append("<em>It looks like some forms haven't been generated yet.  Switch to Tournament mode to create the scouting and interview forms.</em>");
+             }
+             else {
+               switch (mode) {
+                 case "textInput":
+                   $(id).val(result); //put the value of the setting into the specified input element
+                   break;
+                 case "divReplace":
+                   $(id).empty().append(result);
+                   break;
+                 case "divAppend":
+                   $(id).append(result);
+                 default: //warn in console if mode is invalid
+                   console.warn("Invalid mode " + mode + " specified for getPreviouslySavedSetting output");
+                   break;
+               }
+             }
+             
+           }
+         }
+      )
+      .withFailureHandler(
+        function (error) {
+          console.error("Problem getting previously saved setting value " + key + ".  Error: " + error);
+        }
+      )
+      .getRow("DB_SETTINGS",{"key": key}, "data");
+  }
+
+  function checkExecutionStatuses(statuses) {
+    console.log("status values: " + statuses);
+    var allDone = true;
+    for (var i = 0; i < statuses.length; i++) {
+      if (!statuses[i]) { //if one of the functions has not recorded its success, don't close the dialog just yet because error conditions could still come up
+        allDone = false;
+      }
+    }
+    
+    if(allDone) { //if everything saved successfully, close the dialog
+      google.script.host.close();
+    }
+  }
+</script>
