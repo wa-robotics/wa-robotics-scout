@@ -72,9 +72,6 @@ function setupScouts() {
 *
 */
 function saveScoutData(goodScoutData, goodTeamData) {
-  //testing
-  //goodScoutData = [["t","t","1264A"]];
-  //goodTeamData = [];
   Logger.log(goodScoutData);
   Logger.log(goodTeamData);
   //process data
@@ -94,11 +91,7 @@ function saveScoutData(goodScoutData, goodTeamData) {
   
   var highInterestTeams = getRows("DB_TEAMS", { highinterest: true }, "data") //highinterest is no longer a string after being converted into a boolean when added to the spreadsheet
   
-  //determine matches to look at
-  
-  //TODO: don't assume that every team listed in goodTeamData actually came to the tournament.  This would save some processing time but requires changing getRow to getRows
-  
-  pullMatchData(); //refresh match data
+  //pullMatchData(); //refresh match data
   
   //get match constraints for each team member.  No matches 15 min before or 5 min after a team member's match, which is about 4 matches before and 1 match after
   var teamScoutsSheet = ss.getSheetByName("DB_SCOUTS"),
@@ -113,7 +106,7 @@ function saveScoutData(goodScoutData, goodTeamData) {
     rowData = getRow("DB_SCOUTS",i,"data");
     Logger.log(getRow("DB_SCOUTS",i,"data"));
     Logger.log("Row data " + rowData.team);
-    teams.push(getStandardizedTeamName(rowData.team));
+    ourTeams.push(getStandardizedTeamName(rowData.team));
     //get all possible matches for this team
     Logger.log("getsRows  " + getRows("DB_MATCHES",{ blue1: rowData.team }, "data"));
     matchesRawData.push(getRows("DB_MATCHES",{ blue1: rowData.team }, "data"));
@@ -132,30 +125,203 @@ function saveScoutData(goodScoutData, goodTeamData) {
     Logger.log("matches " + matches);
     Logger.log(getRows("DB_MATCHES",{ blue1: rowData.team }, "data"));
     for (var j = 0; j < matches.length; j++) {
-      //for (k = 0; k < matches[j].length; k++) {
         badMatchRanges.push([matches[j].matchnumber-4, matches[j].matchnumber+1]);
-      //}
     }
     teamScoutInfo.push({"name": rowData.name, "email": rowData.email, "team": rowData.team, "badMatchRanges": badMatchRanges });
+    badMatchRanges = [];
+    matchesRawData = [];
+    matches = [];
   }
-  var matchInfo;
-  var matchHITeams;
-  var matchNumAvailScouts;
+  var matchInfo; //information about the match we're looking at
+  var matchHITeams = [0,0,0,0]; //high-interest teams
+  var matchHITeamNums = []; //this stores the actual team numbers for later use; right now, it seems like it'd be better to keep this separate to maintain the simplicity of the alliance bonus calculation
+  var numMatchHITeams = 0;
+  var matchNumAvailScouts = 0; //number of scouts who are predicted to be able to watch a match
+  var scoutOKForMatch = true;
+  var matchImportanceRating;
+  var allianceBonus = 0;
+  var idealNumScouts; //ideal number of scouts that can attend a match
+  var ineligibleMatch = false; //if no scouts can watch this match; this prevents all future match importance ratings from being 0 after the first match with a match importance rating of 0
+  var matchImportanceRatingSum = 0;
+  var matchImportanceRatingTerms = 0;
+  var mirPossibilities = [];
+  var found = false;
+  var averageMIR; //average match importance rating
   //loop through each match and compute a Match Importance Rating to create rankings
-  for (i = 0; i < getDatabaseSize("DB_MATCHES")[0]; i++) {
+  for (i = 0; i < getDatabaseSize("DB_MATCHES")[0] - 1; i++) {
     matchInfo = getRow("DB_MATCHES",i, "data"); //get match info
-    if(!(matchInfo.bluescore >= 0 && matchInfo.redScore >= 0)) {
-      for (j = 0; j < highInterestTeams.length; j++) {
-        if (getStandardizedTeamName(matchInfo.blue1) === getStandardizedTeamName(highInterestTeams[i])) {
-          matchHITeams++;
+    Logger.log(matchInfo + " match info");
+      for (j = 0; j < highInterestTeams.length; j++) { //determine how many high-interest teams are competing in this match
+        if (getStandardizedTeamName(matchInfo.blue1) === getStandardizedTeamName(highInterestTeams[j].team)) {
+          matchHITeams[0] = 1;
+          
+          //this is valid because we're checking to see if a team in any spot of any alliance in this match is among the high-interest teams; if so, then we know we have a high-interest team for this match
+          matchHITeamNums.push(matchInfo.blue1); //since the data in the matchHITeamNums array will not be comapared against anything, we don't need to standardize the values - a number or a string will be equally fine
         }
-       // else if (){}
+        if (getStandardizedTeamName(matchInfo.blue2) === getStandardizedTeamName(highInterestTeams[j].team)) {
+           matchHITeams[1] = 1;
+           matchHITeamNums.push(matchInfo.blue2); //since the data in the matchHITeamNums array will not be comapared against anything, we don't need to standardize the values - a number or a string will be equally fine
+        }
+        if (getStandardizedTeamName(matchInfo.red1) === getStandardizedTeamName(highInterestTeams[j].team)) {
+           matchHITeams[2] = 2; 
+           matchHITeamNums.push(matchInfo.red1); //since the data in the matchHITeamNums array will not be comapared against anything, we don't need to standardize the values - a number or a string will be equally fine
+        }
+        if (getStandardizedTeamName(matchInfo.red2) === getStandardizedTeamName(highInterestTeams[j].team)) {
+           matchHITeams[3] = 2; 
+           matchHITeamNums.push(matchInfo.red2); //since the data in the matchHITeamNums array will not be comapared against anything, we don't need to standardize the values - a number or a string will be equally fine
+        }
       }
-    }
+              //now, matchHITeams will contain 1s and 2s to indicate high-interest teams.  For example, if there were two blue high-interst teams and two red high-interest teams, matchHITeams will be [1,1,2,2].  Array indices 0 and 1, and 1 and 2, can be compared for the same value to determine the alliance bonus
+        if (matchHITeams[0] === matchHITeams[1] && matchHITeams[0] !== 0 && matchHITeams[1] !== 0) { //blue alliance bonus
+          allianceBonus++;
+        }
+        if (matchHITeams[2] === matchHITeams[3] && matchHITeams[2] !== 0 && matchHITeams[3] !== 0) { //blue alliance bonus
+          allianceBonus++;
+        }
+      
+      //determine number of scouts who could watch this match by looping through the array of scouts and verifying that this match is not within any of their badMatchRanges
+      for(j = 0; j < teamScoutInfo.length; j++) {
+        for(k = 0; k < teamScoutInfo[j].badMatchRanges.length; k++) {
+          //current match number is i + 1
+          if ((i + 1) >= teamScoutInfo[j].badMatchRanges[k][0] && i + 1 <= teamScoutInfo[j].badMatchRanges[k][1]) { //if this match is within one of this team member's badMatchRanges...
+            scoutOKForMatch = false; //...record that the scout can't watch this match
+            break; //no need to continue check badMatchRanges
+          }
+        }
+        if(scoutOKForMatch) { //if this match wasn't in the scout's badMatchRanges, record that
+          matchNumAvailScouts++;
+        } else { //scoutOKForMatch is false
+          scoutOKForMatch = true; //reset scoutOKForMatch
+        }
+      }
+      
+      //calculate number of high-interest teams
+      for (var l = 0; l < matchHITeams.length; l++) {
+        if(matchHITeams[l] === 1 || matchHITeams[l] === 2) {
+          numMatchHITeams++;
+        }
+      }
+      
+      //calculate Match Importance Rating
+      if (matchNumAvailScouts === 0 || numMatchHITeams === 0) {
+        ineligibleMatch = true;
+      } else if (numMatchHITeams === 1) {
+        idealNumScouts = .5; //the number of scouts wanted would be 0 otherwise (1 - 1), so take half.  This also gives a slight bonus to matches with 1 high-interest team
+      } else { //numMatchHITeans is greater than 1, so there won't be any division by 0
+        idealNumScouts = numMatchHITeams - 1;
+      }
+      matchImportanceRating = (ineligibleMatch) ? 0 : numMatchHITeams + allianceBonus + matchNumAvailScouts/idealNumScouts; //give a match important rating of 0 if no scouts can watch it
+      
+      //record the Match Importance Rating
+      editRow("DB_MATCHES", { matchnumber: i + 1 }, { matchimportancerating: matchImportanceRating });
+      //record this match importance rating only if it hasn't already been recorded
+      for (var m = 0; m < mirPossibilities.length; m++) {
+        if (mirPossibilities[m] === matchImportanceRating) {
+          found = true;
+        }
+      }
+      
+      if(!found) {
+        mirPossibilities.push(matchImportanceRating);
+      }
+      matches.push({matchnum:i+1,mir:matchImportanceRating,importance:null,HITeams:matchHITeamNums});
+      
+      Logger.log("Match importance rating: " + matchImportanceRating);
+      
+      //below two lines used to determine relative importance of a matching in a more general manner (e.g., above average importance, average importance, below average importance)
+      matchImportanceRatingSum += matchImportanceRating;
+      matchImportanceRatingTerms++;
+      
+      //reset variables
+      matchHITeams = [0,0,0,0]; //high-interest teams
+      matchHITeamNums = []; //high-interest team numbers
+      numMatchHITeams = 0;
+      idealNumScouts = 0;
+      matchNumAvailScouts = 0; //number of scouts who are predicted to be able to watch a match
+      scoutOKForMatch = true;
+      allianceBonus = 0;
+      ineligibleMatch = false;
+      found = false;
+
   }
   Logger.log(teamScoutInfo);
+  var maxMIR = mirPossibilities[0];
+  for (i = 1; i < mirPossibilities.length; i++) {
+    if (mirPossibilities[i] > maxMIR) {
+      maxMIR = mirPossibilities[i];
+    }
+  }
   
+  //divide the highest MIR by 4 to get the MIR steps that will define the relative importance of matches
+  //loop through each match and check it's MIR, then add it to the text for an email
+  Logger.log(mirPossibilities);
+  var emailMustSeeMatches = "";
+  var emailOtherMatches = ""; //matches that are "must-see" but that might also be worth watching
+  var emailNoSeeMatches = ""; //matches that no one will be able to see
+  var mirPossibilitiesLength = mirPossibilities.length;
+  var HITeamsToWatch = ""; //stores the stringified version of the high-interest teams for a match
+  var HITeamsListLength; //store the length of the HI team list array for a match because we use it multiple times
+  var plural = "";
   
+  //importance is defined on a scale as follows (these generalized values make interpreting match importance ratings easier):
+  //2 - it'll be easy to watch these matches, or if not, make an effort to watch these matches
+  //1 - if you have downtime and there's no "2" match to watch, watch one of these matches
+  //0 - it doesn't look like anyone will be able to see this match or there are no teams you're interested in seeing in this match
+  for (i = 0; i < matches.length; i++) {
+     if(matches[i].mir === maxMIR) {
+       matches[i].importance = 2;
+     } else if(matches[i].mir > 0) {
+       matches[i].importance = 1;
+     } else {
+       matches[i].importance = 0;
+     }
+     
+     HITeamsListLength = matches[i].HITeams.length;
+     if(HITeamsListLength > 0) {
+     //parse the HI teams list for this match and stringify it
+       for (var j = 0; j < HITeamsListLength; j++) {
+         if (HITeamsListLength - j > 1) { //if this isn't the last element in the array, add a comma after it
+             HITeamsToWatch += matches[i].HITeams[j] + ", ";
+         } else { //this is the last element of the array, so don't add a comma after it
+             HITeamsToWatch += matches[i].HITeams[j];
+         }
+       }
+     } else {
+       HITeamsToWatch = "none";
+     }
+     switch (matches[i].importance) {
+       case 2:
+         plural = (matches[i].HITeams.length === 1) ? "" : "s";
+         emailMustSeeMatches += "Q" + (i + 1) + ": team" + plural + " " + HITeamsToWatch + "\n";
+         break;
+       case 1:
+         plural = (matches[i].HITeams.length === 1) ? "" : "s";
+         emailOtherMatches += "Q" + (i + 1) + ": team" + plural + " " + HITeamsToWatch + "\n";
+         break;
+       case 0:
+         emailNoSeeMatches += "Q" + (i + 1) + "\n";
+     }
+     
+     //reset variables
+     HITeamsToWatch = "";
+     plural = "";
+  }
+  
+  //parse the match data to create an email
+  var email = "Hi and happy winter break; this is Evan.  You may disregard this TEST email from WA Robotics Scout.  I'm just making sure a cool new feature is working - more details when we get back from break.  :) \n\n  Make time to watch these matches:\n" + emailMustSeeMatches + "\n\nExtra time?  See if you can watch one of these matches:\n" + emailOtherMatches + "\n\nFor these remaining matches, either: 1) based on what you told WARS, it doesn't look like they'll be interesting, or 2) WARS doesn't think anyone on the team will be able to watch these matches:\n" + emailNoSeeMatches;
+  var emailAddresses = "";
+  var currentEditors = ss.getEditors();
+  for (i = 0; i < currentEditors.length; i++) { 
+    if (currentEditors.length - i > 1) { //if this isn't the last element in the array, add a comma after it
+      emailAddresses += currentEditors[i] + ", ";
+    } else {
+      emailAddresses += currentEditors[i];
+    }
+  }
+  
+  Logger.log(email);
+  Logger.log(emailAddresses);
+  MailApp.sendEmail({to:"evan.strat@gmail.com", subject:"WA Robotics Scout Important Matches - TESTING ONLY",body: email, cc:emailAddresses});
 }
 
 /**
@@ -250,7 +416,7 @@ function changeMode(newMode) {
 */
 function pullMatchData() {
   createDatabase("DB_MATCHES",true,["matchnumber","red1","red2","blue1","blue2",
-                                    "redscore","bluescore","dqteams","noshowteams","r1emc","r2emc","b1emc","b2emc"]); //make the database if we need to
+                                    "redscore","bluescore","dqteams","noshowteams","r1emc","r2emc","b1emc","b2emc","blueadjustedscore","redadjustedscore","matchimportancerating"]); //make the database if we need to
   
   var sku = getRow("DB_SETTINGS", { key: "roboteventssku" }, "data").value; //get the event sku from the settings database
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("DB_MATCHES");
@@ -469,7 +635,7 @@ function onFormSubmit(e) {
   //var lastResponseWithEdit = getRow("DB_SETTINGS", {key:"lasteditablescoutingformresponse"},"data").value;
   var form = FormApp.openByUrl(url);
   formResponses = form.getResponses();
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Form Responses 11");
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Form Responses 11")
   var editUrl = formResponses[formResponses.length-1].getEditResponseUrl();
   sheetSize = getDatabaseSize("Form Responses 11");
   var numCols = sheetSize[1];
@@ -810,7 +976,7 @@ function createInterviewForm() {
      .setTitle("Other Notes");
      
  //page 9 question stems
- var NOTE9 = form.addParagraphTextItem();
+ var NOTE9 = form.addParagraphTextItem()
  
  //02-APTS
  APTS2.setTitle("How many points can you consistently score in autonomous?")
@@ -905,7 +1071,7 @@ function createDatabase(dbName, ifNotExist, columns) {
       create = true;
   if (ifNotExist) { //if we need to check if the sheet exists
     var sheets = ss.getSheets();
-    if (sheets.length > 1) {
+    if (sheets.length >= 1) {
       for (var i = 0; i < sheets.length; i++) {
         if (sheets[i].getSheetName() === dbName) {
           create = false; //if a sheet with the name given is found, don't create a new database
@@ -917,7 +1083,7 @@ function createDatabase(dbName, ifNotExist, columns) {
   if (create) {
     ss.insertSheet(dbName);
     var sheet = ss.getSheetByName(dbName);
-    sheet.protect().setWarningOnly(true).setDescription("Warn on manual database edits"); //add protection
+    sheet.protect().setWarningOnly(true).setDescription("Warn on manual database edits"); //add protection against inadvertant changes to the database
     sheet.appendRow(columns);
   }
 }
@@ -940,14 +1106,27 @@ function getDatabaseColumns(database) {
 * @param database The database to look in
 * @param search An object containing key-value pairs for search terms and expected values, or a row number (zero-indexed where the first row after the database headers is row 0 (e.g., first row of data after the database headers would be row 0))
 * @param mode Either "data" or "number" - "data" will return the data in the found row (if any) as an object; "number" will return the row number of the found row
+* @param spreadsheetID Optional paramater used to facilitate API requests
 * @return Depending on mode, either an object of row data or a row number (row number is zero-indexed).  In both cases, the result will come in the form of an array.  Returns -1 if no match found, or an empty array .  Returns "Bad mode parameter value" if the mode parameter has an invalid value.
 */
-function getRows(database, search, mode) {
+function getRows(database, search, mode, spreadsheetID) {
 //testing:
 /*database = "DB_SETTINGS";
 search = {key: "roboteventssku"};
 mode = "data";*/
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(database);
+  var spreadsheet,
+      useID = false;
+  if (spreadsheetID) {
+    try {
+      spreadsheet = SpreadsheetApp.openById(spreadsheetID);
+    } catch(e) {
+      return {error: { code: 200, message: "Couldn't get spreadsheet with ID specified because of an error: " + e }};
+    }
+    useID = true; //this will only run if there was no error and the return statement wasn't called
+  }
+  
+  spreadsheet = (!useID) ? SpreadsheetApp.getActiveSpreadsheet() : spreadsheet; //if no spreadsheet ID was specified, 
+  var sheet = spreadsheet.getSheetByName(database);
   var data = getRowsData(sheet);
   var match = true;
   var result = []; //store the results of the search; only used for queries
@@ -1126,7 +1305,7 @@ function editRow (database, search, change) {
       lock.releaseLock();
       Logger.log(newRowData);
     }
-    debugger;
+    //debugger;
   }
 }
 
@@ -1166,7 +1345,7 @@ function savePrefs(prefKey, prefValue) {
   prefKey = "roboteventssku";
   prefValue = "1234";*/
   
-  //prevent this function from running multiple times to prevent a situation in which two concurrent execution of this function both call createDatabase, and in the slight difference of timing, the a row that is supposed
+  //prevent this function from running multiple times to prevent a situation in which two concurrent execution of this function both call createDatabase, and in the slight difference of timing, the row that is supposed
   //     to come later in the spreadsheet ends up in the first row and displaces the column headers.  See WA Robotics Scout Planning Doc (https://docs.google.com/document/d/1DM4OHtkywGLhlSI_wnO3ENEwTxvN_11SSOWw6ELoXOo/edit) for
   //     more information.
   var lock = LockService.getScriptLock();
