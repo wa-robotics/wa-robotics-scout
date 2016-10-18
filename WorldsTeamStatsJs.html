@@ -1,0 +1,23 @@
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>
+  //initialization
+  $(function(){
+    //button handlers
+    $('#s1-submit').click(processData);
+  });
+    
+  
+  function processData() {
+    $('#step1').addClass("hidden");
+    $('#processing').removeClass("hidden");
+    var rows = $('#worlds-teams-to-scout').val().toUpperCase().split(/\n/g); //create an array for each row of data in the textarea
+    
+    google.script.run
+          .withSuccessHandler(function() {
+            google.script.host.close();
+          })
+          .getWorldsTeamStats(rows);
+  }
+</script>
+
+
