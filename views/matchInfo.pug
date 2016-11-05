@@ -1,0 +1,21 @@
+mixin matchCard(matchNum,allianceColor,partners,opponents)
+div(class=["match-info-card","mdl-card.mdl-shadow--2dp"] class=[allianceColor])
+  .mdl-card__title
+    h4#match-num= MATCHNUM
+  .mdl-card__supporting-text
+    if partners.length === 2
+        em="With " + partners[0] + "/" + partners[1]
+    else
+        em="With " + partners[0]
+    br
+    if opponents.length === 3
+        em= "Against " + opponents[0] + "/" + opponents[1] + "/" + opponents[2]
+    else
+        em= "Against " + opponents[0] + "/" + opponents[1]
+  .mdl-card__actions.mdl-card--border
+    a.mdl-button.mdl-button--colored.mdl-js-button.mdl-js-ripple-effect(href=MATCHINFOUR, data-upgraded=',MaterialButton,MaterialRipple')
+      | Details
+      span.mdl-button__ripple-container
+        span.mdl-ripple
+    .mdl-layout-spacer
+    i.material-icons info_outline
