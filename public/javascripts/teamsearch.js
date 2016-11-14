@@ -99,4 +99,3 @@ function signIn() {
         //get match details to determine which teams are competing in this match
         $('body').append('<script src="' + url + '"><\/script>');
     }
-}
