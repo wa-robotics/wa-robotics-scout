@@ -6,7 +6,8 @@
           }
       });
       $('#default-team-save').click(saveDefaultTeam);
-      $('#org-select').change(loadTournamentInfo)
+      $('#org-select').change(loadTournamentInfo);
+      $('#team-select').change(getTeamMatches);
   });
 
   function saveDefaultTeam() {
@@ -21,6 +22,7 @@
           console.error("Saving default team failed: " + error);
       }).saveDefaultTeam(defaultTeam);
   }
+  var reqFromAndroidApp = false;
 
   function processResults(value) {
       var currentMatch;
@@ -37,17 +39,16 @@
       var matchResultsString = "";
       var scoresString = "";
       var scoreAvailable = false
-          , androidAppUrl
-          , matchDetailsJsAndroid
-          , matchLetter
-          , matchDescriptor;
+          , androidAppUrl, matchDetailsJsAndroid, matchLetter, matchDescriptor;
       $('#match-container').empty(); //this is actually the second emptying of this div; this time, we're removing the loading indication now that the match data has loaded and just needs to be processed
       console.log(value);
+      console.log("queryTeam", queryTeam);
       if (value.results.length === 0) {
           $('#match-container').append("<i class='material-icons'>info_outline</i> No matches found for this team");
       }
       for (var i = 0; i < value.results.length; i++) {
           currentMatch = value.results[i];
+          console.log(currentMatch);
           console.log("currentMatch.red1 = " + currentMatch.red1 + "; team = " + queryTeam);
           //determine alliance and position on alliance
           if (currentMatch.red1 === queryTeam) {
@@ -137,11 +138,11 @@
           //output the match result if available
           if (scoreAvailable) {
               //determine which alliance won
-              if (currentMatch.redscore > currentMatch.bluescore) {
+              if (parseInt(currentMatch.redscore) > parseInt(currentMatch.bluescore)) {
                   winningAlliance = "red-alliance";
                   scoresString = '<span class="red-alliance-text">' + currentMatch.redscore + '</span>-<span class="blue-alliance-text">' + currentMatch.bluescore + '</span>'; //higher score always goes first
               }
-              else if (currentMatch.redscore < currentMatch.bluescore) {
+              else if (parseInt(currentMatch.redscore) < parseInt(currentMatch.bluescore)) {
                   winningAlliance = "blue-alliance";
                   scoresString = '<span class="blue-alliance-text">' + currentMatch.bluescore + '</span>-<span class="red-alliance-text">' + currentMatch.redscore + '</span>'; //higher score always goes first
               }
@@ -180,10 +181,10 @@
           }
           //console.log("AndroidAppUrl: " + androidAppUrl);
           //for now, the first part of this URL will be hard-coded; in the future there will need to be a method to keep track of what users are using what WARS instances
-          detailsURL = "https://script.google.com/a/macros/woodward.edu/s/AKfycbzjo4-KCrLdrFOcpJCwg3kwWYenjFyV8C6aAxfVZs4/exec?page=match&id=" + instanceID + "&match=" + currentMatch.matchnumber + androidAppUrl;
+          detailsURL = "#";
           if (parseInt(value.results[i].round === 1) || parseInt(value.results[i].round) === 2) {
               matchLetter = parseInt(currentMatch.round) === 1 ? "P" : "Q";
-              matchDescriptor = matchLetter + currentMatch.matchnumber;
+              matchDescriptor = matchLetter + currentMatch.matchnum;
           }
           else { //this is a quarterfinals, semifinals, or finals match
               switch (parseInt(currentMatch.round)) {
@@ -197,7 +198,7 @@
                   matchLetter = "F";
                   break;
               }
-              matchDescriptor = matchLetter + currentMatch.instance + "-" + currentMatch.matchnumber;
+              matchDescriptor = matchLetter + currentMatch.instance + "-" + currentMatch.matchnum;
           }
           var matchInfo = '<div class="mdl-cell--2-col mdl-cell--3-col-tablet mdl-cell--3-col-desktop"><div class="match-info-card mdl-card mdl-shadow--2dp ' + effectiveAllianceColor + '"><div class="mdl-card__title"><h4 id="match-num">' + matchDescriptor + '</h4></div><div class="mdl-card__supporting-text">' + matchResultsString + '<em>With</em> ' + partner + '<br /><em>Against</em> ' + opponents + '</div><div class="mdl-card__actions mdl-card--border"><a href="' + detailsURL + '"' + matchDetailsJsAndroid + ' class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">Details</a><div class="mdl-layout-spacer"></div><i class="material-icons">info_outline</i></div></div></div>'
               //console.log(matchInfo);
@@ -241,41 +242,57 @@
       $(selector).attr("selected", "selected");
   }
 
-  function getTeamMatches(queryTeam) {
-      //!!!DISABLE NO REFRESH FLAG!!!
-      var url = "https://script.google.com/a/macros/woodward.edu/s/AKfycbxsKMe0cdyYScaJXipBoA2bFSY8Aj-jxlQqyS4aDOI/exec?prefix=processResults&type=getTeamMatches&norefresh&id=" + instanceID + "&team=" + queryTeam;
-      updateTeamDropdown();
-      if (userTeam !== queryTeam) {
+  function test(result) {
+      console.log(result);
+  }
+  $('#team-select').change(function () {
+      console.log("called");
+      $('#match-container').empty() //remove the current set of matches being displayed from the page before displaying the new matches (if any); this is located here to prevent confusion of two sets of matches while the new set is loading
+          .prepend('<div class="mdl-cell--12-col"> <em>Loading...</em></div>');
+      getTeamMatches();
+  });
+
+  function finishGetTeamMatches(sku, queryTeam) {
+      var url = "/api/" + sku + "/" + queryTeam;
+      console.log(url);
+      jQuery.ajax(url, {
+          success: processResults
+      });
+      //modalInit();
+      //console.log("queryTeam is " + queryTeam);
+      //console.log("Show default team selection modal? " + promptDefaultTeam);
+      //console.log(queryTeam);
+      //console.log(userTeam);
+      //console.log("promptDefaultTeam is " + promptDefaultTeam + " of type " + typeof promptDefaultTeam);
+      /*if (promptDefaultTeam === "true") { //promptDefaultTeam becomes a string when it is inserted into a script tag (in index.html) with a printing scriptlet
+        var dialog = document.querySelector('#default-team-select-dialog');
+        console.log("promptDefaultTeam is " + promptDefaultTeam);
+        dialog.showModal();
+      } else if(queryTeam) {
+        getTeamMatches(queryTeam);
+      }*/
+  }
+  var queryTeam = "";
+
+  function getTeamMatches() {
+      console.log("called2");
+      queryTeam = $('#team-select').val();
+      var sku;
+      console.log("tournament sku id", $('#tournament-select').val());
+      firebase.database().ref('/tournaments/' + $('#tournament-select').val() + '/sku').once('value').then(function (snapshot) {
+          finishGetTeamMatches(snapshot.val(), queryTeam);
+      });
+      console.log("sku", sku);
+      //updateTeamDropdown();
+      /*if (userTeam !== queryTeam) {
           if ($('#show-diff-team').hasClass('hidden')) { //only remove the hidden class if it's present
               $('#show-diff-team').removeClass('hidden');
           }
       }
       else if (!$('#show-diff-team').hasClass('hidden')) { //only add the hidden class if it's absent
           $('#show-diff-team').addClass('hidden');
-      }
-      console.log(url);
-      $('body').append('<script id="api-request" type="text/javascript" src="' + url + '"><\/script>');
+      }*/
   }
-  //modalInit();
-  $('#team-select').change(function () {
-      $('#match-container').empty() //remove the current set of matches being displayed from the page before displaying the new matches (if any); this is located here to prevent confusion of two sets of matches while the new set is loading
-          .prepend('<div class="mdl-cell--12-col"> <em>Loading...</em></div>');
-      $('#api-request').remove(); //get rid of the original API call to prevent build-up of old script tags
-      queryTeam = $('#team-select').val()
-      getTeamMatches(queryTeam);
-  });
-  //console.log("queryTeam is " + queryTeam);
-  //console.log("Show default team selection modal? " + promptDefaultTeam);
-  //console.log(queryTeam);
-  //console.log(userTeam);
-  //console.log("promptDefaultTeam is " + promptDefaultTeam + " of type " + typeof promptDefaultTeam);
-  /*if (promptDefaultTeam === "true") { //promptDefaultTeam becomes a string when it is inserted into a script tag (in index.html) with a printing scriptlet
-    var dialog = document.querySelector('#default-team-select-dialog');
-    console.log("promptDefaultTeam is " + promptDefaultTeam);
-    dialog.showModal();
-  } else if(queryTeam) {
-    getTeamMatches(queryTeam);
-  }*/
   var config = {
       apiKey: "AIzaSyAIvK9HrI4P7MJlzjOHmcWeja2BPEInuTo"
       , authDomain: "wa-robotics-scout.firebaseapp.com"
