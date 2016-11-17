@@ -1,2 +1,3 @@
-# wa-robotics-scout
-Our Google Sheets add-on for obtaining and analyzing scouting data for teams at tournaments.  We hope to release it as an add-on sometime in the future but don't have a timeline for that just yet.
+# WA Robotics Scout
+
+[![Build Status](https://travis-ci.org/wa-robotics/wa-robotics-scout.svg?branch=v1.0-heroku)](https://travis-ci.org/wa-robotics/wa-robotics-scout)

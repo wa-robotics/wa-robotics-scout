@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <base target="_top">
+    <title>
+        <%= title %>
+    </title>
+    <link rel="stylesheet" href="https://code.getmdl.io/1.1.3/material.blue_grey-orange.min.css" />
+    <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="stylesheets/global.css" type="text/css" />
+    <link rel="stylesheet" href="stylesheets/scouting.css" type="text/css" /> </head>
+
+<body class="mdl-color--grey-50">
+    <!--This lets the Javascript on this page use variables passed from the server.-->
+    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+        <% include nav.ejs %>
+            <main class="mdl-layout__content">
+                <div class="page-content">
+                    <div class="question">
+                        <p>Which team are you scouting?
+                            <br /><em>Tap a team number to select the team and the related match all at once</em></p>
+                        <div id="team-select-container" class="hidden">
+                            <p id="select-other-match"><a href="#">Select other match...</a></p>
+                        </div>
+                        <div id="match-selector-data-loading" class="mdl-spinner mdl-spinner--single-color mdl-js-spinner is-active"></div>
+                        <div class="hidden" id="show-other">
+                            <p class="hidden" id="match-is-visible"><i class="material-icons">info_outline</i> That match is already visible</p>
+                            <p id="other-match-sel-instructions">Enter match number (qualification matches only):</p> Q
+                            <div class="mdl-textfield mdl-js-textfield" id="container-other-match-num">
+                                <input class="mdl-textfield__input" type="number" pattern="-?[0-9]*(\.[0-9]+)?" id="other-match-num">
+                                <label class="mdl-textfield__label" for="other-match-num">Match</label> <span class="mdl-textfield__error">Enter a positive integer greater than 0</span> </div>
+                            <button class="mdl-button mdl-js-button mdl-button--icon mdl-button--colored" id="submit-other-match"> <i class="material-icons">check</i> </button>
+                        </div>
+                        <div class="mdl-textfield mdl-js-textfield" id="container-manual-match-num">
+                            <input class="mdl-textfield__input" type="number" pattern="-?[0-9]*(\.[0-9]+)?" id="manual-match-num">
+                            <label class="mdl-textfield__label" for="manual-match-num">Match</label> <span class="mdl-textfield__error">Enter a positive integer greater than 0</span> </div>
+                        <div class="mdl-textfield mdl-js-textfield" id="container-manual-team-entry">
+                            <input class="mdl-textfield__input" type="text" pattern="^[0-9]{1,5}[a-zA-Z]?$" id="other-team-num">
+                            <label class="mdl-textfield__label" for="other-team-num">Team</label> <span class="mdl-textfield__error">Enter a valid team number</span> </div>
+                    </div>
+                    <div class="question">
+                        <p>When does this team's autonomous play start?
+                            <br /> <em>Press <strong>Start</strong> when the autonomous period begins, then press <strong>Mark time</strong>
+            to answer this question.  Or press Enter Time at any time to type in a time.</em>
+                            <br /> <i class="material-icons">info_outline</i> After you press Mark or Enter time, pressing the opposite button will clear your selection.</p>
+                        <div class="espion-radio-select bar-radio-select-2 bar-radio" id="robot-auton-start">
+                            <div class="option">
+                                <button class="default mdl-button mdl-js-button mdl-js-ripple-effect" id="enter-time">Enter time</button>
+                                <div class="done hidden">Enter seconds left in autonomous period
+                                    <div class="mdl-textfield mdl-js-textfield espion-text-input">
+                                        <input class="mdl-textfield__input" type="number" id="auton-play-start-time">
+                                        <label class="mdl-textfield__label" for="auton-play-start-time">Time in seconds...</label>
+                                    </div>
+                                    <button class="mdl-button mdl-js-button mdl-js-ripple-effect espion-to-default"> <i class="material-icons">undo</i> Undo </button>
+                                </div>
+                            </div>
+                            <div class="option">
+                                <!-- The order here matters for the JS.  The mark time button must be above the undo button. -->
+                                <button class="default mdl-button mdl-js-button mdl-js-ripple-effect mark-time-auton" data-time-label="auton-start-time" disabled>Mark time</button>
+                                <div class="done hidden"><i class="material-icons">check</i> Got it!
+                                    <br />
+                                    <button class="mdl-button mdl-js-button mdl-js-ripple-effect espion-to-default"> <i class="material-icons">undo</i> Undo </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <br />
+                    <div class="question espion-text">
+                        <p>How many points did this team score in autonomous?
+                            <br /> <em>Don't count the objects that are already scored.  Just count the number of stars/cubes this team scored in their near or far zone, then multiply by the appropriate number of points</em></p>
+                        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="container-auton-pts-scored">
+                            <input class="mdl-textfield__input" type="number" pattern="-?[0-9]*(\.[0-9]+)?" id="auton-pts-scored">
+                            <label class="mdl-textfield__label" for="auton-pts-scored">Points scored</label> <span class="mdl-textfield__error">Enter a positive integer greater than 0</span> </div>
+                    </div>
+                    <div class="question">
+                        <p>Did this team ever do any of the following during autonomous?
+                            <br /> <em>Tap all choices that apply</em></p>
+                        <div class="espion-check-all">
+                            <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="auton-shot-stars">
+                                <input type="checkbox" id="auton-shot-stars" name="auton-actions[]" class="mdl-checkbox__input"> <span class="mdl-checkbox__label">Scored star in near or far zone</span> </label>
+                            <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="auton-shot-cubes">
+                                <input type="checkbox" id="auton-shot-cubes" name="auton-actions[]" class="mdl-checkbox__input"> <span class="mdl-checkbox__label">Scored cube in near or far zone</span> </label>
+                            <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="auton-knock-stars-fence">
+                                <input type="checkbox" id="auton-knock-stars-fence" name="auton-actions[]" class="mdl-checkbox__input"> <span class="mdl-checkbox__label">Knocked star(s) off fence</span> </label>
+                            <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="auton-high-hang">
+                                <input type="checkbox" id="auton-high-hang" name="auton-actions[]" class="mdl-checkbox__input"> <span class="mdl-checkbox__label">Hung high</span> </label>
+                            <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="auton-low-hang">
+                                <input type="checkbox" id="auton-low-hang" name="auton-actions[]" class="mdl-checkbox__input"> <span class="mdl-checkbox__label">Hung low</span> </label>
+                            <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="auton-none">
+                                <input type="checkbox" id="auton-none" name="auton-actions[]" class="mdl-checkbox__input"> <span class="mdl-checkbox__label">No autonomous play in this match</span> </label>
+                            <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="auton-none-of-these">
+                                <input type="checkbox" id="auton-none-of-these" name="auton-actions[]" class="mdl-checkbox__input"> <span class="mdl-checkbox__label">Didn't do any of these</span> </label>
+                        </div>
+                    </div>
+                    <p class="espion-section-header">Driver control</p>
+                    <div class="question">
+                        <p>How does this robot score stars and cubes?
+                            <br /> <em>Tap all choices that apply</em></p>
+                        <div class="espion-check-all">
+                            <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="robot-type-catapult">
+                                <input type="checkbox" id="robot-type-catapult" class="mdl-checkbox__input"> <span class="mdl-checkbox__label">Catapult</span> </label>
+                            <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="robot-type-dumper">
+                                <input type="checkbox" id="robot-type-dumper" class="mdl-checkbox__input"> <span class="mdl-checkbox__label">Dumper</span> </label>
+                            <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="robot-type-none-of-these">
+                                <input type="checkbox" id="robot-type-none-of-these" class="mdl-checkbox__input"> <span class="mdl-checkbox__label">Didn't do any of these</span> </label>
+                        </div>
+                    </div>
+                    <div class="question">
+                        <p>Does this robot strafe?</p>
+                        <div class="espion-radio-select">
+                            <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="strafe-option-yes">
+                                <input type="radio" id="strafe-option-yes" class="mdl-radio__button" name="robot-strafes" value="yes"> <span class="mdl-radio__label">Yes</span> </label>
+                            <br />
+                            <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="strafe-option-no">
+                                <input type="radio" id="strafe-option-no" class="mdl-radio__button" name="robot-strafes" value="none"> <span class="mdl-radio__label">No</span> </label>
+                            <br />
+                            <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="strafe-option-not-sure">
+                                <input type="radio" id="strafe-option-not-sure" class="mdl-radio__button" name="robot-strafes" value="not-sure"> <span class="mdl-radio__label">Not sure</span> </label>
+                        </div>
+                    </div>
+                    <div class="question">
+                        <p>Where does this robot score stars and cubes? (Please keep reading for detailed assistance.)
+                            <br /><em>Tap where the star or cube lands.  Press Undo to remove an unintentional tap(s).  Press Reset This Question to start over.  For multiple stars or cubes shot <strong>together</strong>, tap once for each object shot.  Keep answering until you see "Got it!"
+               Once you get to 5/5 entered, a "Got it!" message will appear 2.5 seconds after your last tap.  You can press Undo to remove your last tap even in the 5/5 group, and the question won't show the "Got it!" message until 2.5 seconds after your <strong>next</strong> tap.  Once "Got it!" appears,
+               you can't undo anymore.  [For the technically curious: your taps will be regrouped by time when this submission is processed, so don't fret about the group count listed here for this question.]</em></p>
+                        <p id="select-team-first"><i class="material-icons">error_outline</i> Select a team in the first question to begin</p> <img class="img-responsive red-alliance hidden" id="field-image-red" src="https://wa-robotics-scout-web-assets.firebaseapp.com/field-blue.png" /> <img class="img-responsive blue-alliance hidden" id="field-image-blue" src="https://wa-robotics-scout-web-assets.firebaseapp.com/field-red.png" />
+                        <div id="obj-locs-response-done" class="hidden"><i class="material-icons">done</i> Got it!</div>
+                        <div id="obj-locs-response-info">
+                            <button class="mdl-button mdl-js-button mdl-js-ripple-effect soft-hidden" id="reset-score-locs"><i class="material-icons">clear</i> Reset this question</button>
+                            <button class="mdl-button mdl-js-button mdl-js-ripple-effect soft-hidden" id="undo-last-score-loc-input"><i class="material-icons">undo</i> Undo</button>
+                            <div class="hidden" id="container-num-locs-entered">
+                                <p><span id="num-locs-entered">0</span>/5 entered</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="question">
+                        <p>When does this team hang during driver control?
+                            <br /> <em>If you pressed <strong>Start</strong> when the driver control period began, then press <strong>Mark time</strong>
+            to answer this question.  Otherwise, press Enter Time at any time to type in a time</em>
+                            <br /> <i class="material-icons">info_outline</i> After you press Mark or Enter time, pressing the opposite button will clear your selection.</p>
+                        <div class="espion-radio-select bar-radio-select-2 bar-radio" id="robot-dc-hang-start">
+                            <div class="option">
+                                <button class="default mdl-button mdl-js-button mdl-js-ripple-effect" id="enter-time">Enter time</button>
+                                <div class="done hidden">Enter seconds left in driver control
+                                    <div class="mdl-textfield mdl-js-textfield espion-text-input">
+                                        <input class="mdl-textfield__input" type="number" id="dc-hang-start-time">
+                                        <label class="mdl-textfield__label" for="dc-hang-start-time">Time in seconds...</label>
+                                    </div>
+                                    <button class="mdl-button mdl-js-button mdl-js-ripple-effect espion-to-default"> <i class="material-icons">undo</i> Undo </button>
+                                </div>
+                            </div>
+                            <div class="option">
+                                <button class="default mdl-button mdl-js-button mdl-js-ripple-effect mark-time-driver" data-time-label="dc-hang-start" disabled>Mark time</button>
+                                <div class="done hidden"><i class="material-icons">check</i> Got it!
+                                    <br />
+                                    <button class="mdl-button espion-to-default mdl-js-button mdl-js-ripple-effect"> <i class="material-icons">undo</i> Undo </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <br />
+                    <div class="question">
+                        <p>When did this team finish hanging?
+                            <br /> <i class="material-icons">info_outline</i> After you press Mark or Enter time, pressing the opposite button will clear your selection.</p>
+                        <div class="espion-radio-select bar-radio-select-2 bar-radio" id="robot-dc-hang-end">
+                            <div class="option">
+                                <button class="default mdl-button mdl-js-button mdl-js-ripple-effect" id="enter-time">Enter time</button>
+                                <div class="done hidden">Enter seconds left in driver control
+                                    <div class="mdl-textfield mdl-js-textfield espion-text-input">
+                                        <input class="mdl-textfield__input" type="number" id="dc-hang-end-time">
+                                        <label class="mdl-textfield__label" for="dc-hang-end-time">Time in seconds...</label>
+                                    </div>
+                                    <button class="mdl-button mdl-js-button mdl-js-ripple-effect espion-to-default"> <i class="material-icons">undo</i> Undo </button>
+                                </div>
+                            </div>
+                            <div class="option">
+                                <button class="default mdl-button mdl-js-button mdl-js-ripple-effect mark-time-driver" data-time-label="dc-hang-end" disabled>Mark time</button>
+                                <div class="done hidden"><i class="material-icons">check</i> Got it!
+                                    <br />
+                                    <button class="mdl-button espion-to-default mdl-js-button mdl-js-ripple-effect"> <i class="material-icons">undo</i> Undo </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <br />
+                    <div class="question">
+                        <p>Was the hang successful?
+                            <br /> <em>Select N/A if hang wasn't attempted</em></p>
+                        <div class="espion-radio-select">
+                            <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="driver-no-hang-attempt">
+                                <input type="radio" id="driver-no-hang-attempt" class="mdl-radio__button" name="driver-hang-result" value="not-applicable"> <span class="mdl-radio__label">N/A</span> </label>
+                            <br />
+                            <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="driver-high-hang">
+                                <input type="radio" id="driver-high-hang" class="mdl-radio__button" name="driver-hang-result" value="high"> <span class="mdl-radio__label">High hang</span> </label>
+                            <br />
+                            <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="driver-low-hang">
+                                <input type="radio" id="driver-low-hang" class="mdl-radio__button" name="driver-hang-result" value="low"> <span class="mdl-radio__label">Low hang</span> </label>
+                            <br />
+                            <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="driver-hang-attempt-failed">
+                                <input type="radio" id="driver-hang-attempt-failed" class="mdl-radio__button" name="driver-hang-result" value="failed"> <span class="mdl-radio__label">Unsuccessful attempt</span> </label>
+                        </div>
+                    </div>
+                    <div class="question">
+                        <p>Did this robot's partner help it hang?</p>
+                        <div class="espion-radio-select">
+                            <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="hang-assist-option-yes">
+                                <input type="radio" id="hang-assist-option-yes" class="mdl-radio__button" name="hang-assistance" value="yes"> <span class="mdl-radio__label">Yes</span> </label>
+                            <br />
+                            <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="hang-assist-option-no">
+                                <input type="radio" id="hang-assist-option-no" class="mdl-radio__button" name="hang-assistance" value="no"> <span class="mdl-radio__label">No</span> </label>
+                            <br />
+                            <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="hang-assist-option-not-sure">
+                                <input type="radio" id="hang-assist-option-not-sure" class="mdl-radio__button" name="hang-assistance" value="not-sure"> <span class="mdl-radio__label">Not sure</span> </label>
+                        </div>
+                    </div>
+                    <div class="question">
+                        <button id="submit-form" class="mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect"> Submit </button>
+                        <p class="hidden" id="submit-success"><i class="material-icons">check</i> Data submitted successfully</p>
+                        <p class="hidden" id="submit-failure"><i class="material-icons">error_outline</i> Hm, WARS Web is having trouble processing this form. Please contact support with this error: <span id="submit-error-msg"></span></p>
+                    </div>
+                </div>
+                <div id="match-timer" class="timer-stopped">
+                    <div id="ready-auton"><strong>Ready for autonomous</strong>
+                        <button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="start-auton-timer">Start</button>
+                    </div>
+                    <div class="hidden" id="auton-timer-running"><strong>Autonomous</strong> in progress
+                        <button id="btn-stop-auton" class="mdl-button mdl-js-button mdl-js-ripple-effect">Stop early</button>
+                    </div>
+                    <div class="hidden" id="match-paused">
+                        <div id="auton-winner-selection"> <span id="auton-winner-direction">Who <strong>won</strong> autonomous?</span>
+                            <br />
+                            <div class="auton-winner-option option-red-alliance">R</div>
+                            <div class="auton-winner-option option-blue-alliance">B</div>
+                            <div class="auton-winner-option option-tie">TIE</div>
+                        </div>
+                        <div id="driver-start">
+                            <button id="btn-driver-start" class="mdl-button mdl-js-button mdl-js-ripple-effect">Start driver</button>
+                            <br />
+                            <div class="small-text" id="screen-wont-change">Screen won't change until autonomous winner is selected</div>
+                        </div>
+                    </div>
+                    <div class="hidden" id="driver-timer-running"><strong>Driver control</strong> in progress
+                        <button id="btn-stop-driver" class="mdl-button mdl-js-button mdl-js-ripple-effect">Stop early</button>
+                    </div>
+                    <div class="hidden" id="match-ended">Match over</div>
+                </div>
+                <div class="footer"> </div>
+            </main>
+    </div>
+    <script src="https://code.getmdl.io/1.1.3/material.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/3.5.0/firebase.js"></script>
+    <script src="javascripts/scouting.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,321 @@
+#match-timer {
+    opacity: .95;
+    position: fixed;
+    bottom: 0;
+    z-index: 150;
+    height: auto;
+    width: 100%;
+    color: white;
+    padding: 5px;
+    box-shadow: 0 -2px 2px #90A4AE;
+}
+
+.timer-stopped {
+    background-color: #607D8B;
+}
+
+.timer-running {
+    background-color: #4CAF50;
+}
+
+.timer-paused {
+    background-color: #FFAB00;
+}
+
+#match-timer > div > button,
+#match-timer > div > div > button {
+    color: white;
+}
+
+#auton-winner-selection {
+    float: left;
+    width: 50%;
+    height: 100%;
+    color: black;
+}
+
+#driver-start {
+    float: right;
+    width: 50%;
+    height: 100%;
+}
+
+.auton-winner-option {
+    width: 50px;
+    height: 36px;
+    margin-right: 10px;
+    /*display: inline-block;*/
+    text-align: center;
+    vertical-align: middle;
+    display: table-cell;
+    -webkit-transition: background-color 1s easeOutQuint 0;
+    -moz-transition: background-color 1s easeOutQuint 0;
+    -ms-transition: background-color 1s easeOutQuint 0;
+}
+
+.not-selected.option-blue-alliance {
+    /*notice the lack of a space between .not-selected and .option-blue-alliance - this
+                                     makes a big difference in the selector (no space = both classes, space = one class and then the other) */
+    background-color: #90CAF9;
+}
+
+.not-selected.option-red-alliance {
+    background-color: #EF9A9A;
+}
+
+.not-selected.option-tie {
+    background-color: #E0E0E0;
+}
+
+.option-blue-alliance {
+    background-color: #2196F3;
+}
+
+.option-red-alliance {
+    background-color: #F44336;
+}
+
+.option-tie {
+    background-color: #9E9E9E;
+}
+
+.selected {
+    font-weight: bold;
+    font-size: 15px;
+}
+
+#driver-start > #btn-driver-start {
+    /*this selector is used in order to increase its specificity without having to use !important*/
+    color: black;
+    margin: 10px 0;
+    /* this works because the height of the bottom bar where this is located is constant*/
+}
+
+.small-text {
+    color: black;
+    margin-top: -15px;
+    font-size: 10px;
+    line-height: 12px;
+}
+
+.question {
+    margin: 5px;
+}
+
+.team-select {
+    background: #E0E0E0;
+    text-align: center;
+    width: fit-content !important;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+}
+
+.team-select:not(:first-child) {
+    margin-top: 10px;
+}
+
+.row-team.option-red-alliance {
+    border: 2px solid #F44336;
+}
+
+.row-team.option-red-alliance.not-selected,
+.team-select.not-selected > .match-row > .row-team.option-red-alliance {
+    border: 1px dashed #F44336;
+}
+
+.team-select.red-alliance-selected {
+    background: #f6c6c6;
+}
+
+.row-team.option-blue-alliance {
+    border: 2px solid #2196F3;
+}
+
+.row-team.option-blue-alliance.not-selected,
+.team-select.not-selected > .match-row > .row-team.option-blue-alliance {
+    border: 1px dashed #2196F3;
+}
+
+.team-select.blue-alliance-selected {
+    background: #c0e1fc;
+}
+
+.row-team,
+.match-number {
+    padding: 5px;
+    height: 27px;
+    width: 45px;
+    display: table-cell;
+    vertical-align: middle;
+    text-align: center;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+    background: none !important;
+}
+
+.match-row {
+    margin: auto;
+    padding: 5px;
+}
+
+.row-team.filler {
+    width: 10px !important;
+    padding: 0 !important;
+}
+
+.match-number {
+    font-weight: bold;
+}
+
+#match-selector-data-loading.mdl-spinner {
+    margin-left: 45% !important;
+    margin-top: 5px;
+}
+
+.match-number.not-selected,
+.team-select.not-selected > .match-row > .match-number {
+    font-weight: normal;
+}
+
+#container-other-match-num {
+    width: 50%;
+}
+
+input,
+label {
+    font-family: Roboto !important;
+}
+
+#other-match-sel-instructions {
+    margin-bottom: -25px;
+}
+
+#added-by-other.error {
+    margin-top: 10px;
+}
+
+#match-is-visible {
+    margin-top: 5px;
+    margin-bottom: 0;
+}
+
+#select-other-match {
+    margin-top: 5px;
+}
+
+#show-other {
+    margin-top: 5px;
+}
+
+
+/* 9/24/2016.  Updated bar-radio-select-2 classes to also work in Firefox.  Changed properties denoted with previously
+for reference.  In .bar-radio-select-2 > .option CSS, changed display to inline-block and added whitespace:nowrap and
+specified widths.  See http://stackoverflow.com/questions/18140691/horizontally-aligned-divs-working-in-chrome-but-not-firefox*/
+
+.bar-radio-select-2 > .option > button {
+    height: 100px;
+    width: 100%;
+    /*previously 49.44%*/
+    max-width: 175px;
+    background: #CFD8DC;
+    margin-left: 0;
+    margin-right: 0;
+    vertical-align: top;
+    display: table-cell;
+}
+
+.bar-radio-select-2 > .option > div {
+    text-align: center;
+    vertical-align: middle;
+    margin: 0 !important;
+    background: #fafafa;
+    height: 100px;
+    width: 100%;
+    white-space: normal;
+    display: inline-block;
+    vertical-align: top;
+}
+
+.bar-radio-select-2 > .option > button[disabled] {
+    background: #CFD8DC;
+}
+
+.bar-radio-select-2 > .option {
+    display: inline-block;
+    /*previously inline*/
+    white-space: nowrap;
+    /*previously not here*/
+    width: 49.1%;
+    /*49.1% ensures that buttons display corrected in at small display sizes*/
+    max-width: 175px;
+}
+
+.espion-radio-select > .option > .done > .mdl-textfield,
+.espion-radio-select > .option > .done > .mdl-textfield > .mdl-textfield__input,
+.espion-radio-select > .option > .done > .mdl-textfield > .mdl-textfield__label,
+{
+    width: 100% !important;
+    max-width: 175px;
+}
+
+div.question.espion-text > p {
+    margin-bottom: -10px;
+}
+
+.espion-text > .mdl-textfield {
+    width: 100%;
+    max-width: 400px;
+}
+
+.footer {
+    height: 75px;
+}
+
+.question > p {
+    font-weight: bold;
+}
+
+.question > p > em {
+    font-weight: normal;
+}
+
+.espion-check-all > label.mdl-checkbox,
+.espion-radio-select > label.mdl-radio {
+    margin-bottom: 15px;
+    margin-left: 15px;
+}
+
+.espion-section-header {
+    font-size: 18px;
+    margin-left: 5px;
+    font-weight: bold;
+}
+
+
+/* inspired by Bootstrap / http://stackoverflow.com/a/15458733/5434744 / http://stackoverflow.com/a/25564005/5434744 */
+
+.img-responsive {
+    width: 100%;
+    max-width: 450px;
+    height: auto;
+    display: block;
+    margin: 0;
+}
+
+.soft-hidden {
+    visibility: hidden;
+}
+
+#container-num-locs-entered:not(.hidden) {
+    display: inline;
+}
+
+#obj-locs-response-info {
+    margin-top: 5px;
+}
+
+.espion-text-input {
+    margin: -18px !important;
+}
