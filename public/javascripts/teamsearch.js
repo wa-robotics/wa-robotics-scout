@@ -87,6 +87,7 @@ function signIn() {
             }
         });
     });
+}
 
     function processResults(value) {
         var data = value.results;
