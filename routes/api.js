@@ -20,7 +20,7 @@ function getTeamMatchesVexDb(res, sku, teamNum) {
             };
             console.log(results);
             res.send(JSON.stringify(results));
-        })
+        });
     }
 }
 
@@ -31,7 +31,7 @@ function getUnscoredMatches(res, sku, num) {
         var results = {
             status: 1,
             results: parsed.result
-        }
+        };
         console.log(results);
         res.send(JSON.stringify(results));
     });
