@@ -27,7 +27,7 @@ function getUserOrgs() {
 console.log("global js ran");
 
 function firebaseInit() {
-    console.log("init ran")
+    console.log("init ran");
     firebase.initializeApp(config);
 }
 
