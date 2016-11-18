@@ -218,25 +218,13 @@
      /* }());
     */
   }
-
-  function getDefaultTeamNumber() {
-      /*
-      google.script.run.withSuccessHandler(function (returnVal) {
-          return returnVal;
-      }).withFailureHandler(function (error) {
-          return false;
-      }).getDefaultTeamNumber();
-      */
-  }
-
-  function updateTeamDropdown() {
+//TODO: update this to work with new code architecture
+  /*function updateTeamDropdown() {
       var selector = '[value="' + queryTeam + '"]';
       $(selector).attr("selected", "selected");
-  }
+  }*/
 
-  function test(result) {
-      console.log(result);
-  }
+
   $("#team-select").change(function () {
       console.log("called");
       $("#match-container").empty() //remove the current set of matches being displayed from the page before displaying the new matches (if any); this is located here to prevent confusion of two sets of matches while the new set is loading
