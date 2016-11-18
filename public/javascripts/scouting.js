@@ -501,7 +501,7 @@
           var removedElemTime = new Date(removedElem.time).getTime();
           console.log(removedElem);
           console.log("prev elem time", prevElemTime);
-          console.log("removed elem time", removedElemTime)
+          console.log("removed elem time", removedElemTime);
           console.log(Math.abs(removedElemTime - prevElemTime) / 1000);
           if (numStarGroupsEntered === 5) { //if undo is pressed after a tap during the last scoring group, remove the question hide timeout until the next tap in case the user's last tap was unintentional and to avoid the question unexpectedly disappearing; the timeout will get reactivated if necessary on the next tap
               window.clearTimeout(endScoreLocs); //need to do this *before* we potentially decrement numStarGroupsEntered because this condition uses the inital value (the value before Undo was pressed) of numStarGroupsEntered
@@ -551,8 +551,8 @@
           , team: teamSelected
           , alliance: allianceSelected
           , submitTime: Date.now()
-      }
-      google.script.run.withSuccessHandler(function (result) {
+      };
+      /*google.script.run.withSuccessHandler(function (result) {
           console.log(result);
           $('#submit-form').removeAttr("disabled");
           $('#submit-success').removeClass("hidden");
@@ -561,5 +561,5 @@
           $('#submit-form').removeAttr("disabled");
           $('#submit-error-msg').text(error);
           $('#submit-error').removeClass("hidden");
-      }).submitResponses(formAnswers);
+      }).submitResponses(formAnswers);*/
   }
