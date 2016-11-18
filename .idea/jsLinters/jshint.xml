@@ -18,7 +18,7 @@
     <option eqnull="false" />
     <option es3="false" />
     <option es5="false" />
-    <option esnext="false" />
+    <option esnext="true" />
     <option evil="false" />
     <option expr="false" />
     <option forin="true" />
@@ -34,7 +34,7 @@
     <option lastsemic="false" />
     <option latedef="false" />
     <option laxbreak="false" />
-    <option laxcomma="false" />
+    <option laxcomma="true" />
     <option loopfunc="false" />
     <option maxerr="50" />
     <option mocha="true" />

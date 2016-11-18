@@ -2,26 +2,14 @@
       $("#feedback-form-link").click(function (e) {
           e.preventDefault();
           if (reqFromAndroidApp) { //make sure this function can't be accidentally run from outside the Android app
+              //noinspection JSUnresolvedVariable
               Android.openFeedbackForm();
           }
       });
-      $("#default-team-save").click(saveDefaultTeam);
       $("#org-select").change(loadTournamentInfo);
       $("#team-select").change(getTeamMatches);
   });
 
-  function saveDefaultTeam() {
-      var defaultTeam = $("#default-team-select").val();
-      google.script.run.withSuccessHandler(function (returnVal, element) {
-          console.log("Saved default team: " + returnVal);
-          document.querySelector("#default-team-select-dialog").close(); //the default team was successfully saved; now load this team's matches
-          queryTeam = defaultTeam;
-          userTeam = defaultTeam;
-          getTeamMatches(queryTeam);
-      }).withFailureHandler(function (error, element) {
-          console.error("Saving default team failed: " + error);
-      }).saveDefaultTeam(defaultTeam);
-  }
   var reqFromAndroidApp = false;
 
   function processResults(value) {
@@ -38,8 +26,8 @@
       var matchDone = false;
       var matchResultsString = "";
       var scoresString = "";
-      var scoreAvailable = false
-          , androidAppUrl, matchDetailsJsAndroid, matchLetter, matchDescriptor;
+      var scoreAvailable = false,
+          androidAppUrl, matchDetailsJsAndroid, matchLetter, matchDescriptor;
       $("#match-container").empty(); //this is actually the second emptying of this div; this time, we're removing the loading indication now that the match data has loaded and just needs to be processed
       console.log(value);
       console.log("queryTeam", queryTeam);
@@ -200,7 +188,7 @@
               }
               matchDescriptor = matchLetter + currentMatch.instance + "-" + currentMatch.matchnum;
           }
-          var matchInfo = '<div class="mdl-cell--2-col mdl-cell--3-col-tablet mdl-cell--3-col-desktop"><div class="match-info-card mdl-card mdl-shadow--2dp ' + effectiveAllianceColor + '"><div class="mdl-card__title"><h4 id="match-num">' + matchDescriptor + '</h4></div><div class="mdl-card__supporting-text">' + matchResultsString + '<em>With</em> ' + partner + '<br /><em>Against</em> ' + opponents + '</div><div class="mdl-card__actions mdl-card--border"><a href="' + detailsURL + '"' + matchDetailsJsAndroid + ' class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">Details</a><div class="mdl-layout-spacer"></div><i class="material-icons">info_outline</i></div></div></div>'
+          var matchInfo = '<div class="mdl-cell--2-col mdl-cell--3-col-tablet mdl-cell--3-col-desktop"><div class="match-info-card mdl-card mdl-shadow--2dp ' + effectiveAllianceColor + '"><div class="mdl-card__title"><h4 id="match-num">' + matchDescriptor + '</h4></div><div class="mdl-card__supporting-text">' + matchResultsString + '<em>With</em> ' + partner + '<br /><em>Against</em> ' + opponents + '</div><div class="mdl-card__actions mdl-card--border"><a href="' + detailsURL + '"' + matchDetailsJsAndroid + ' class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">Details</a><div class="mdl-layout-spacer"></div><i class="material-icons">info_outline</i></div></div></div>';
               //console.log(matchInfo);
           $("#match-container").append(matchInfo);
           //reset variables
@@ -212,6 +200,7 @@
   }
 
   function modalInit() {
+      /*
       (function () {
           "use strict";
           var dialogButton = document.querySelector(".dialog-button");
@@ -226,15 +215,18 @@
           .addEventListener('click', function() {
             dialog.close();
           });*/
-      }());
+     /* }());
+    */
   }
 
   function getDefaultTeamNumber() {
+      /*
       google.script.run.withSuccessHandler(function (returnVal) {
           return returnVal;
       }).withFailureHandler(function (error) {
           return false;
       }).getDefaultTeamNumber();
+      */
   }
 
   function updateTeamDropdown() {
@@ -341,7 +333,7 @@
   }
 
   function loadTournamentInfo() {
-      console.log("called")
+      console.log("called");
       var currentOrg = $("#org-select").val();
       $("#tournament-select").empty().append('<option class="hidden" value="">Select a tournament</option>').attr("disabled","disabled");
       $("#team-select").empty().append('<option class="hidden" value="">Select a team</option>').attr("disabled","disabled");
