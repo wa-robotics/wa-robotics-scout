@@ -17,7 +17,7 @@ function getTeamMatchesVexDb(res, sku, teamNum) {
             var results = {
                 status: 1
                 , results: parsed.result
-            }
+            };
             console.log(results);
             res.send(JSON.stringify(results));
         })
@@ -29,8 +29,8 @@ function getUnscoredMatches(res, sku, num) {
         var raw = body;
         var parsed = JSON.parse(raw);
         var results = {
-            status: 1
-            , results: parsed.result
+            status: 1,
+            results: parsed.result
         }
         console.log(results);
         res.send(JSON.stringify(results));
