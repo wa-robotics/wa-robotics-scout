@@ -156,7 +156,7 @@
       $(".auton-winner-option.option-tie").click(tieAutonWinnerClick);
       $("#btn-driver-start").click(driverPeriodStart); //click handler for driver control period start button
       $('#btn-stop-driver').click(function () {
-          window.clearTimeout(driverTimeout)
+          window.clearTimeout(driverTimeout);
           showMatchEnd();
       });
       $('#team-select-container').on('click', '.team-select > .match-row > .row-team.option-red-alliance, .team-select > .match-row > .row-team.option-blue-alliance', matchSelectHandler);
@@ -177,7 +177,7 @@
       $('.espion-radio-select > .option').on("click", "button.default, button.done", espionSwapDisplay);
       $('.espion-radio-select > .option').on("click", "button.espion-to-default", espionPanelToDefault);
       $('.img-responsive.blue-alliance, .img-responsive.red-alliance').on("click", scoringLocationsImageClicked);
-      $('#reset-score-locs').on("click", resetScoredObjs)
+      $('#reset-score-locs').on("click", resetScoredObjs);
       $('#undo-last-score-loc-input').on("click", undoLastScoredObj);
   });
 
