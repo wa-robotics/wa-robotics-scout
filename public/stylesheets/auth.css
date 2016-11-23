@@ -1,0 +1,13 @@
+#sign-in-loading.mdl-spinner {
+    margin-left: 45% !important;
+    margin-top: 5px;
+}
+
+#firebaseui-auth-container {
+    margin: 0 auto;
+}
+@media (max-width: 480px) {
+    #sign-in-container {
+        width: 100%;
+    }
+}
