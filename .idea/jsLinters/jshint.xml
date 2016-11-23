@@ -72,7 +72,7 @@
     <option supernew="false" />
     <option trailing="true" />
     <option typed="false" />
-    <option undef="true" />
+    <option undef="false" />
     <option unused="false" />
     <option validthis="false" />
     <option varstmt="false" />
