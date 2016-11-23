@@ -377,5 +377,7 @@
               }
               getUserOrgs();
           });
+      } else {
+          window.location = "/auth"; //user is not signed, redirect to sign in page
       }
   });
