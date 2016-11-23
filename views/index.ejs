@@ -3,6 +3,7 @@
 
 <head>
     <base target="_top">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>
         <%= //noinspection BadExpressionStatementJS
         title %>
@@ -14,7 +15,7 @@
 
 <body class="mdl-color--grey-50">
     <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
-        <% include nav.ejs %>
+        <%- include('nav', {includeMenu: true}); %>
             <main class="mdl-layout__content">
                 <div class="page-content">
                     <div class="mdl-grid hidden" id="show-diff-team">
