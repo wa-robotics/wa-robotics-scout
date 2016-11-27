@@ -78,27 +78,29 @@
           $('#team-select-container').removeClass('hidden');
       }
   }
-  var autonTimeout, driverTimeout, autonWinner = ""
-      , autonStartTime, driverStartTime, matchSelected = ""
-      , teamSelected = ""
-      , allianceSelected = ""
-      , numStarGroupsEntered = 0
-      , matchesVisible = []
-      , formAnswers = {
-          scoredObjs: []
-          , markedTimes: {}
-          , text: {}
-          , radio: {}
-          , checkbox: {}
-          , meta: null
-      }
-      , scoredObjsQuestionEnabled = true;
+  var autonTimeout, driverTimeout, autonWinner = "",
+      autonStartTime, driverStartTime, matchSelected = "",
+      teamSelected = "",
+      allianceSelected = "",
+      numStarGroupsEntered = 0,
+      matchesVisible = [],
+      formAnswers = {
+          scoredObjs: [],
+          markedTimes: {},
+          text: {},
+          radio: {},
+          checkbox: {},
+          meta: null
+      },
+      scoredObjsQuestionEnabled = true;
 
   function callLoadMatchDataReg(data) {
+      "use strict";
       loadMatchData(data, false);
   }
 
   function resetScoredObjs() {
+      "use strict";
       //make sure previous answers are discarded
       formAnswers.scoredObjs = [];
       scoredObjsQuestionEnabled = false;
@@ -115,17 +117,20 @@
   }
 
   function ScoredObject(time, x, y) {
+      "use strict";
       this.x = x;
       this.y = y;
       this.time = time;
   }
 
   function finishGetUnscoredMatches(sku) {
+      "use strict";
       jQuery.ajax("/api/" + sku + '/unscored/3', {
           success: callLoadMatchDataReg
       });
   }
   $(document).ready(function () {
+      "use strict";
       componentHandler.upgradeAllRegistered(); //to make sure the loading spinner appears and not just "Loading..."
       //load matches for match selector
       //DISABLE NO REFRESH FLAG!!!!!
@@ -151,7 +156,7 @@
       $(".auton-winner-option.option-tie").click(tieAutonWinnerClick);
       $("#btn-driver-start").click(driverPeriodStart); //click handler for driver control period start button
       $('#btn-stop-driver').click(function () {
-          window.clearTimeout(driverTimeout)
+          window.clearTimeout(driverTimeout);
           showMatchEnd();
       });
       $('#team-select-container').on('click', '.team-select > .match-row > .row-team.option-red-alliance, .team-select > .match-row > .row-team.option-blue-alliance', matchSelectHandler);
@@ -172,11 +177,12 @@
       $('.espion-radio-select > .option').on("click", "button.default, button.done", espionSwapDisplay);
       $('.espion-radio-select > .option').on("click", "button.espion-to-default", espionPanelToDefault);
       $('.img-responsive.blue-alliance, .img-responsive.red-alliance').on("click", scoringLocationsImageClicked);
-      $('#reset-score-locs').on("click", resetScoredObjs)
+      $('#reset-score-locs').on("click", resetScoredObjs);
       $('#undo-last-score-loc-input').on("click", undoLastScoredObj);
   });
 
   function updateAutonWinnerDisplay(winner) {
+      "use strict";
       if (winner === "blue") {
           if (!$(".auton-winner-option.option-blue-alliance").hasClass("selected")) { //if the element doesn't already have the selected class, we need to add the selected class and add the not-selected class to the other two options
               $(".auton-winner-option.option-blue-alliance").removeClass("not-selected").addClass("selected");
@@ -208,6 +214,7 @@
   }
 
   function blueAutonWinnerClick() {
+      "use strict";
       if (autonWinner !== "blue") {
           updateAutonWinnerDisplay("blue");
           autonWinner = "blue";
@@ -215,6 +222,7 @@
   }
 
   function redAutonWinnerClick() {
+      "use strict";
       if (autonWinner !== "red") {
           updateAutonWinnerDisplay("red");
           autonWinner = "red";
@@ -222,6 +230,7 @@
   }
 
   function tieAutonWinnerClick() {
+      "use strict";
       if (autonWinner !== "tie") {
           updateAutonWinnerDisplay("tie");
           autonWinner = "tie";
@@ -229,6 +238,7 @@
   }
 
   function showMatchPaused() {
+      "use strict";
       $('.mark-time-auton').attr("disabled", "disabled");
       $('#auton-timer-running').addClass('hidden');
       $('#match-paused').removeClass('hidden');
@@ -236,10 +246,12 @@
   }
 
   function endAuton() {
+      "use strict";
       showMatchPaused();
   }
 
   function endDriver() {
+      "use strict";
       showMatchEnd();
       console.log("Auton start time: " + formAnswers.markedTimes.autonStart);
       console.log("Driver start time: " + formAnswers.markedTimes.driverStart);
@@ -247,6 +259,7 @@
   }
 
   function showMatchEnd() {
+      "use strict";
       if (!autonWinner) { //advance automatically so that the next part works in the event that no autonomous winner has been chosen
           showDriverRunning();
       }
@@ -257,18 +270,21 @@
   }
 
   function hideTimerBar() {
+      "use strict";
       $('#match-timer').fadeOut(1000, "swing", function () {
           $('#match-timer').addClass("hidden").removeAttr("style");
       });
   }
 
   function showDriverRunning() {
+      "use strict";
       $('#match-paused').addClass('hidden');
       $('#driver-timer-running').removeClass('hidden');
       $('#match-timer').removeClass('timer-paused').addClass('timer-running');
   }
 
   function driverPeriodStart() {
+      "use strict";
       formAnswers.markedTimes.driverStart = new Date().getTime();
       driverTimeout = setTimeout(endDriver, 105000);
       console.log(formAnswers.markedTimes);
@@ -283,64 +299,65 @@
   }
 
   function resetMatchSelector() {
-      $('#team-select-container').find('div').removeClass('not-selected');
+      "use strict";
+      $("#team-select-container").find("div").removeClass("not-selected");
       //reset match and team selected variables
       teamSelected = "";
       matchSelected = "";
       allianceSelected = "";
       //reset field image in "Where does this robot score stars and cubes?" question to show "Select a team" error message
-      $('#field-image-red, #field-image-blue, #obj-locs-response-info, #container-num-locs-entered').addClass('hidden');
-      $('#select-team-first').removeClass('hidden');
+      $("#field-image-red, #field-image-blue, #obj-locs-response-info, #container-num-locs-entered").addClass("hidden");
+      $("#select-team-first").removeClass("hidden");
   }
 
   function matchSelectHandler(event) {
-      var oldTeamSelected = teamSelected
-          , oldMatchSelected = matchSelected;
+      var oldTeamSelected = teamSelected,
+          oldMatchSelected = matchSelected;
       teamSelected = $(this).text();
       //console.log(teamSelected + " selected as team");
-      matchSelected = $(this).siblings('.match-number').text(); //get the match selected by finding the sibling element to the one clicked with the .match-number class, which contains the match number
+      matchSelected = $(this).siblings(".match-number").text(); //get the match selected by finding the sibling element to the one clicked with the .match-number class, which contains the match number
       //console.log("matchSelected: " + matchSelected);
       //console.log (oldTeamSelected + " " + teamSelected + " " + oldMatchSelected + " " + matchSelected);
       if (oldTeamSelected !== teamSelected || oldMatchSelected !== matchSelected) { //don't do anything unless a different team was clicked on - the OR for checking if a different match was selected will allow a new team to be selected if the same team is present in more than one of the three matches displayed
           if (oldMatchSelected !== matchSelected && oldTeamSelected) { //only change which match has the colored background if the new team selected is in a different match and this isn't the first time a team is being clicked on (indicated by whether or not oldTeamSelected is an empty string or not)
-              $('.blue-alliance-selected, .red-alliance-selected').removeClass('blue-alliance-selected red-alliance-selected');
+              $(".blue-alliance-selected, .red-alliance-selected").removeClass("blue-alliance-selected red-alliance-selected");
           }
           if (teamSelected) { //if there's already a team selected, remove the selected class from that element so the selected class can be added to the newly selected team
-              $('.row-team.selected').removeClass('selected'); //the selector used here is designed to be a little more specific than necessary to reduce the risk of conflicts with other uses of the "selected" class
+              $(".row-team.selected").removeClass("selected"); //the selector used here is designed to be a little more specific than necessary to reduce the risk of conflicts with other uses of the "selected" class
           }
-          $(this).removeClass('not-selected').addClass("selected");
+          $(this).removeClass("not-selected").addClass("selected");
           //distribute classes to further indicate selection: red-/blue-alliance-selected, not-selected
-          if ($(this).hasClass('option-red-alliance')) { //red alliance team selected
+          if ($(this).hasClass("option-red-alliance")) { //red alliance team selected
               allianceSelected = "red";
-              $(this).parents('.team-select').removeClass('not-selected blue-alliance-selected').addClass('red-alliance-selected'); //remove not-selected and blue-alliance-selected classes in case they are present from previous selections before adding new class
+              $(this).parents(".team-select").removeClass("not-selected blue-alliance-selected").addClass("red-alliance-selected"); //remove not-selected and blue-alliance-selected classes in case they are present from previous selections before adding new class
           }
           else { //blue alliance team selected
-              $(this).parents('.team-select').removeClass('not-selected red-alliance-selected').addClass('blue-alliance-selected');
+              $(this).parents(".team-select").removeClass("not-selected red-alliance-selected").addClass("blue-alliance-selected");
               allianceSelected = "blue";
           }
           updateFieldImage();
-          $(this).siblings('.row-team.option-red-alliance:not(.selected), .row-team.option-blue-alliance:not(.selected)').addClass('not-selected');
-          $(this).parents('.team-select').siblings('.team-select').addClass('not-selected');
+          $(this).siblings(".row-team.option-red-alliance:not(.selected), .row-team.option-blue-alliance:not(.selected)").addClass("not-selected");
+          $(this).parents(".team-select").siblings(".team-select").addClass("not-selected");
       }
   }
 
   function updateFieldImage() {
       if (allianceSelected === "red") { //if this is the red alliance, they are scoring on the blue side of the field, so show the blue half of the field
-          $('#field-image-blue, #obj-locs-response-info, #container-num-locs-entered').removeClass('hidden');
-          $('#field-image-red, #select-team-first').addClass('hidden');
+          $("#field-image-blue, #obj-locs-response-info, #container-num-locs-entered").removeClass("hidden");
+          $("#field-image-red, #select-team-first").addClass("hidden");
           console.log("red called");
       }
       else if (allianceSelected === "blue") { //blue is selected
-          $('#field-image-red, #obj-locs-response-info, #container-num-locs-entered').removeClass('hidden');
-          $('#field-image-blue, #select-team-first').addClass('hidden');
+          $("#field-image-red, #obj-locs-response-info, #container-num-locs-entered").removeClass("hidden");
+          $("#field-image-blue, #select-team-first").addClass("hidden");
           console.log("blue called");
       }
   }
 
   function showOtherInput(event) {
       event.preventDefault(); //make sure the page doesn't refresh
-      $('#select-other-match').addClass('hidden');
-      $('#show-other').removeClass('hidden');
+      $("#select-other-match").addClass("hidden");
+      $("#show-other").removeClass("hidden");
   }
 
   function loadOtherMatchData(data) {
@@ -370,13 +387,13 @@
       //console.log(typeof matchNum);
       //console.log(matchesVisible);
       if (typeof matchNum === "number" && matchNum >= 1 && !matchIsVisible) { //only make the api request if there's an postive non-zero integer in the match number input
-          $('#added-by-other, #match-is-visible').addClass('hidden');
-          $('#match-selector-data-loading').removeClass('hidden').addClass('is-active'); //show loading spinner
-          $('#other-match-num, #submit-other-match').attr("disabled", "disabled"); //disable submit button and entry field
+          $("#added-by-other, #match-is-visible").addClass("hidden");
+          $("#match-selector-data-loading").removeClass("hidden").addClass("is-active"); //show loading spinner
+          $("#other-match-num, #submit-other-match").attr("disabled", "disabled"); //disable submit button and entry field
           //$('body').append('<script src=\"https://script.google.com/a/macros/woodward.edu/s/AKfycbxsKMe0cdyYScaJXipBoA2bFSY8Aj-jxlQqyS4aDOI/exec?type=getMatchInfo&id=' + instanceID + '&prefix=loadOtherMatchData&norefresh=true&match=' + matchNum + '\"><\/script>');
       }
       else if (matchIsVisible) {
-          $('#match-is-visible').removeClass('hidden');
+          $("#match-is-visible").removeClass("hidden");
       }
   }
   /*var radioHandlers = {
@@ -484,7 +501,7 @@
           var removedElemTime = new Date(removedElem.time).getTime();
           console.log(removedElem);
           console.log("prev elem time", prevElemTime);
-          console.log("removed elem time", removedElemTime)
+          console.log("removed elem time", removedElemTime);
           console.log(Math.abs(removedElemTime - prevElemTime) / 1000);
           if (numStarGroupsEntered === 5) { //if undo is pressed after a tap during the last scoring group, remove the question hide timeout until the next tap in case the user's last tap was unintentional and to avoid the question unexpectedly disappearing; the timeout will get reactivated if necessary on the next tap
               window.clearTimeout(endScoreLocs); //need to do this *before* we potentially decrement numStarGroupsEntered because this condition uses the inital value (the value before Undo was pressed) of numStarGroupsEntered
@@ -534,8 +551,8 @@
           , team: teamSelected
           , alliance: allianceSelected
           , submitTime: Date.now()
-      }
-      google.script.run.withSuccessHandler(function (result) {
+      };
+      /*google.script.run.withSuccessHandler(function (result) {
           console.log(result);
           $('#submit-form').removeAttr("disabled");
           $('#submit-success').removeClass("hidden");
@@ -544,5 +561,5 @@
           $('#submit-form').removeAttr("disabled");
           $('#submit-error-msg').text(error);
           $('#submit-error').removeClass("hidden");
-      }).submitResponses(formAnswers);
+      }).submitResponses(formAnswers);*/
   }

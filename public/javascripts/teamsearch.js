@@ -10,15 +10,15 @@ firebaseInit();
 var globalInfo = {};
 
 function getOrgTeams(org, userId) {
-    console.log('/organizations/' + org + '/teams');
-    firebase.database().ref('/organizations/' + org + '/teams').once('value').then(function (snapshot) {
+    console.log("/organizations/"+ org +"/teams");
+    firebase.database().ref("/organizations/"+ org +"/teams").once("value").then(function (snapshot) {
         globalInfo.teams = snapshot.val();
     });
 }
 
 function getUserOrgs() {
     var userId = firebase.auth().currentUser.uid;
-    firebase.database().ref('/users/' + userId).once('value').then(function (snapshot) {
+    firebase.database().ref("/users/"+ userId).once("value").then(function (snapshot) {
         globalInfo.userorgs = snapshot.val().userorgs;
         getOrgTeams(globalInfo.userorgs[0], userId);
     });
@@ -27,12 +27,12 @@ function getUserOrgs() {
 console.log("global js ran");
 
 function firebaseInit() {
-    console.log("init ran")
+    console.log("init ran");
     firebase.initializeApp(config);
 }
 
 function writeUserData(userId, name, email, imageUrl) {
-    firebase.database().ref('users/' + userId).set({
+    firebase.database().ref("users/"+ userId).set({
         username: name
         , email: email
         , profile_picture: imageUrl
@@ -42,13 +42,13 @@ function writeUserData(userId, name, email, imageUrl) {
 firebase.auth().onAuthStateChanged(function (user) {
     if (user) {
         signedInUser = user;
-        firebase.database().ref('users/' + user.uid).once('value').then(function (snapshot) {
+        firebase.database().ref("users/"+ user.uid).once("value").then(function (snapshot) {
             if (!snapshot.val()) {
                 writeUserData(signedInUser.uid, signedInUser.displayName, signedInUser.email, signedInUser.photoURL);
             }
             console.log(getUserOrgs());
         });
-        $('#sign-in').hide();
+        $("#sign-in").hide();
     }
     else {
         console.log("Not signed in");
@@ -87,6 +87,7 @@ function signIn() {
             }
         });
     });
+}
 
     function processResults(value) {
         var data = value.results;
@@ -97,5 +98,5 @@ function signIn() {
         //!!! NO REFRESH IS ENABLED!!!
         var url = "https://script.google.com/a/macros/woodward.edu/s/AKfycbxsKMe0cdyYScaJXipBoA2bFSY8Aj-jxlQqyS4aDOI/dev?prefix=processResults&norefresh&type=getTeamInfo&id=1vrZQpvtiJvcyKdlULZk5HOyRU5ystAiMZ4y8rF6d&id=" + instanceID + "&team=" + team;
         //get match details to determine which teams are competing in this match
-        $('body').append('<script src="' + url + '"><\/script>');
+        $("body").append('<script src="' + url + '"><\/script>');
     }

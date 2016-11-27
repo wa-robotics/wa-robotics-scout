@@ -3,6 +3,7 @@
 
 <head>
     <base target="_top">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>
         <%= title %>
     </title>
@@ -15,7 +16,7 @@
 <body class="mdl-color--grey-50">
     <!--This lets the Javascript on this page use variables passed from the server.-->
     <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
-        <% include nav.ejs %>
+        <%- include('nav', {includeMenu: true}); %>
             <main class="mdl-layout__content">
                 <div class="page-content">
                     <div class="question">
