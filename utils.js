@@ -1,7 +1,7 @@
 const express = require("express");
 const httpAuth = require("basic-auth");
 
-exports.basicAuth = function (username, password) {
+exports.basicAuth = function () {
     return function (req,res,next) {
         let user = httpAuth(req);
         if (!user || user.name !== process.env.STAGING_USER ||

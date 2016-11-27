@@ -10,7 +10,6 @@ const api = require("./routes/api");
 const scout = require("./routes/scout");
 const authFlow = require("./routes/auth");
 const utils = require("./utils");
-let request = require("request");
 const app = express();
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
@@ -27,7 +26,7 @@ app.use(express.static(path.join(__dirname, "public")));
 
 //auth for staging instance on heroku
 if (process.env.DEPLOY_TYPE === "STAGING") {
-    app.use("/*", utils.basicAuth(1, 2));
+    app.use("/*", utils.basicAuth());
 }
 
 
