@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <base target="_top">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <%= //noinspection BadExpressionStatementJS
+        title %>
+    </title>
+    <link rel="stylesheet" href="https://code.getmdl.io/1.1.3/material.blue_grey-orange.min.css" />
+    <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="stylesheets/global.css" type="text/css" /> </head>
+
+<body class="mdl-color--grey-50">
+    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+        <%- include('nav', {includeMenu: true}); %>
+            <main class="mdl-layout__content">
+                <div class="page-content">
+                    <div class="mdl-grid">
+                        <div class="mdl-cell--12-col">
+                            <h4>WA Robotics Scout Privacy Policy</h4>
+                            <p>WA Robotics Scout uses Google Analytics to collect anonymous statistics about what you do on this website. The collection is facilitated by an anonymous tracking cookie.</p>
+                            <p>This means that (unless you opt out) when you use WA Robotics Scout, information about your activity on the website and how you are accessing is collected. This data includes:</p>
+                            <ul>
+                                <li>The referring website </li>
+                                <li>How long you stay for</li>
+                                <li>What kind of device you're using</li>
+                                <li>Other statistics, such basic demographic information</li>
+                            </ul>
+                            <p>This information helps WA Robotics Scout and its maintainers better understand who is using WA Robotics Scout and in what ways. In this way, design changes and features are better prioritized.</p>
+                            <p>If Google Analytics statistics are aggregated, no personally identifying data will be included in such reports, and the data won't be shared with or sold to a third-party commercial entity or business. Additionally, any usage of Google Analytics will be in compliance with the <a href="https://www.google.com/analytics/terms/us.html" target="_blank">Google Analytics Terms of Service</a>. The Google privacy policy can be found <a href="https://www.google.com/intl/en/policies/privacy/" target="_blank">here</a>.</p>
+                            <p>You may opt out of Google Analytics tracking at any time by installing <a href="https://tools.google.com/dlpage/gaoptout" target="_blank">this browser plugin</a>.</p>
+                            <p>Inspired in part by <a href="http://www.davemulder.com/privacy-policy/" target="_blank">davemulder.com</a>'s privacy policy.</p>
+                        </div>
+                    </div>
+                </div>
+            </main>
+            <%- include("footer"); %>
+                <!--<footer> <a href="https://docs.google.com/forms/d/1W2IYYH-SRWF5gKdhqbj2fdIivSLQyHm5fY-3UcNabY0/viewform" target="_blank">Send feedback</a> <a id="feedback-form-link" href="#">Send feedback</a> </footer>-->
+    </div>
+    <script src="https://code.getmdl.io/1.1.3/material.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <%- include("analytics"); %>
+</body>
+
+</html>
