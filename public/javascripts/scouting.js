@@ -552,6 +552,8 @@
           , alliance: allianceSelected
           , submitTime: Date.now()
       };
+
+      firebase.database().ref('/')
       /*google.script.run.withSuccessHandler(function (result) {
           console.log(result);
           $('#submit-form').removeAttr("disabled");
