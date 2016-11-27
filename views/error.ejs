@@ -21,7 +21,11 @@
 
 <body class="mdl-color--grey-50">
 <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+    <% if (showMenu) { %>
     <%- include('nav', {includeMenu: true}); %>
+    <% } else { %>
+    <%- include('nav', {includeMenu: false}); %>
+    <% } %>
     <main class="mdl-layout__content">
         <div class="page-content">
             <div class="mdl-grid">
@@ -31,7 +35,7 @@
                         <% if (notFound) { %>
                         The page you're trying to go to doesn't exist.
                         <% } else {%>
-                        An unknown error occurred while processing your request.
+                        Hm, we can't process your request right now.
                     <% }%>
                         Instead:
                     <ul>
