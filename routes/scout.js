@@ -16,13 +16,13 @@ router.get('/', function (req, res, next) {
 
 
 router.get('/:org/:sku', function (req, res, next) {
-    let sanitizedSku = sku.toUpperCase().trim();
+    let sanitizedSku = req.params.sku.toUpperCase().trim();
     if (!/RE-VRC-[0-9]{2}-[0-9]{4}/gi.test(sanitizedSku)) {
         next();
     }
     res.render('scout', {
         title: 'WARS: Scout matches',
-        sku: req.param.sku
+        sku: req.params.sku
     });
 });
 

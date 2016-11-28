@@ -551,7 +551,10 @@
           submitTime: firebase.database.ServerValue.TIMESTAMP
       };
 
-      firebase.database().ref('/')
+      var orgID = 0;
+      var tournamentID = 2;
+      var pushRef = firebase.database().ref("/scouting/" + orgID + "/" + tournamentID).push();
+      pushRef.set(formAnswers);
 
       /*google.script.run.withSuccessHandler(function (result) {
           console.log(result);
