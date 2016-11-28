@@ -34,9 +34,12 @@
                     <p>
                         <% if (notFound) { %>
                         The page you're trying to go to doesn't exist.
-                        <% } else {%>
-                        Hm, we can't process your request right now.
-                    <% }%>
+                        <% } else if (error.status === 1) {%>
+                            A valid SKU is required to access the scouting form.  Please try again using the link in the
+                        side bar on the homepage.
+                        <% } else { %>
+                            Hm, we can't process your request right now..
+                        <% }%>
                         Instead:
                     <ul>
                         <li><a href="/">Return to homepage</a></li>

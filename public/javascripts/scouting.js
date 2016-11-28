@@ -515,8 +515,6 @@
           }
           $('#num-locs-entered').text(numStarGroupsEntered); //update text showing number of star groups entered
       }
-      else { //show nothing to undo error and/or have undo button not shown
-      }
   }
 
   function endScoringLocations(callerThis) {
@@ -546,14 +544,15 @@
         formAnswers.checkbox[$(this).attr('id')] = $(this).siblings('span').text();
       });*/
       formAnswers.meta = {
-          autonWinner: autonWinner
-          , match: matchSelected
-          , team: teamSelected
-          , alliance: allianceSelected
-          , submitTime: Date.now()
+          autonWinner: autonWinner,
+          match: matchSelected,
+          team: teamSelected,
+          alliance: allianceSelected,
+          submitTime: firebase.database.ServerValue.TIMESTAMP
       };
 
       firebase.database().ref('/')
+
       /*google.script.run.withSuccessHandler(function (result) {
           console.log(result);
           $('#submit-form').removeAttr("disabled");

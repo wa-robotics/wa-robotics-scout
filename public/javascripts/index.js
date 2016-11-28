@@ -359,25 +359,13 @@
       firebase.initializeApp(config);
   }
 
-  function writeUserData(userId, name, email, imageUrl) {
-      firebase.database().ref("users/"+ userId).set({
-          username: name,
-          email: email,
-          profile_picture: imageUrl,
-          organizations: []
-      });
-  }
+
   firebase.auth().onAuthStateChanged(function (user) {
       if (user) {
           signedInUser = user;
           $("#sign-in").hide();
-          firebase.database().ref("users/"+ user.uid).once("value").then(function (snapshot) {
-              if (!snapshot.val()) {
-                  writeUserData(signedInUser.uid, signedInUser.displayName, signedInUser.email, signedInUser.photoURL);
-              }
-              getUserOrgs();
-          });
+          getUserOrgs();
       } else {
-          window.location = "/auth"; //user is not signed, redirect to sign in page
+          window.location = "/auth"; //user is not signed in, redirect to sign in page
       }
   });
