@@ -36,6 +36,20 @@ function getUnscoredMatches(res, sku, num) {
         res.send(JSON.stringify(results));
     });
 }
+
+function getMatch(res, sku, round, instance, matchNum) {
+    request("https://api.vexdb.io/v1/get_matches?sku=" + sku + "&round=" + round + "&instance=" + instance + "&matchnum=" + matchNum, (error, response, body) => {
+        var raw = body;
+        var parsed = JSON.parse(raw);
+        var results = {
+            status: 1,
+            results: parsed.result
+        };
+        console.log(results);
+        res.send(JSON.stringify(results));
+    });
+}
+
 router.get('/:sku/:team', function (req, res, next) {
     res.set('Content-Type', 'application/json');
     getTeamMatchesVexDb(res, req.params.sku, req.params.team);
@@ -44,4 +58,9 @@ router.get('/:sku/unscored/:num', (req, res, next) => {
     res.set('Content-Type', 'application/json');
     getUnscoredMatches(res, req.params.sku, parseInt(req.params.num));
 });
+router.get('/:sku/match/:round/:instance/:num', (req,res,next) => {
+    res.set('Content-Type', 'application/json');
+    getMatch(res, req.params.sku, parseInt(req.params.round), parseInt(req.params.instance), parseInt(req.params.num));
+});
+
 module.exports = router;

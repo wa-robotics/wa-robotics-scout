@@ -11,13 +11,14 @@
     <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="../../../stylesheets/global.css" type="text/css" />
-    <link rel="stylesheet" href="../../../stylesheets/scouting.css" type="text/css" /> </head>
+    <link rel="stylesheet" href="../../../stylesheets/scouting.css" type="text/css" />
+</head>
 
 <body class="mdl-color--grey-50">
     <!--This lets the Javascript on this page use variables passed from the server.-->
     <script>
         var org = "<%= org %>",
-            tournament = "<%= tournament %>"
+            tournament = "<%= tournament %>";
     </script>
     <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
         <%- include('nav', {includeMenu: true}); %>
