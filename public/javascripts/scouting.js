@@ -479,8 +479,9 @@
           var normY = round(e.offsetY / percent, 2);
           formAnswers.scoredObjs.push(new ScoredObject(time, normX, normY));
           //console.log(time);
+          var lastScoredObj;
           if (formAnswers.scoredObjs.length >= 2) {
-              var lastScoredObj = new Date(formAnswers.scoredObjs[formAnswers.scoredObjs.length - 2].time).getTime(); //since we've already added the new scored object to scoredObjs by now, we need the second-to-last element in the array
+              lastScoredObj = new Date(formAnswers.scoredObjs[formAnswers.scoredObjs.length - 2].time).getTime(); //since we've already added the new scored object to scoredObjs by now, we need the second-to-last element in the array
           }
           else {
               numStarGroupsEntered++; //increment numStarGroupsEntered the first time the field is clicked and there's no other ScoredObject entry to compare the time to
@@ -537,6 +538,58 @@
       scoredObjsQuestionEnabled = false;
   }
 
+  function checkboxToString(checkboxes) {
+      var autonActions = ["Scored star in near or far zone","Scored cube in near or far zone","Knocked star(s) off fence","Hung high","Hung low"];
+      var robotTypes = ["Catapult","Dumper"];
+      var stem = "",
+          checkboxValsArray = [],
+          str = "",
+          result = [];
+      console.log(checkboxes);
+      for (var id in checkboxes) {
+          checkboxValsArray.push({"id": id, "val":checkboxes[id]});
+      }
+
+      checkboxValsArray.sort(function(a,b) {
+          if (a.id > b.id) {
+              return 1;
+          } else if (a.id < b.id) {
+              return -1;
+          }
+          return 0;
+      });
+      console.log(checkboxValsArray);
+
+      var value,
+          currGroupIndex = 0;
+      stem = checkboxValsArray[0].id.substring(0,id.indexOf("-") + 1);
+      for (var i = 0; i < checkboxValsArray.length; i++) {
+          id = checkboxValsArray[i].id;
+          console.log(id.substring(0,id.indexOf("-") + 1))
+          if (id.substring(0,id.indexOf("-") + 1) !== stem) {
+              console.log("new stem");
+              stem = id.substring(0,id.indexOf("-") + 1);
+              result[currGroupIndex] = [str.substring(0,str.length-2)];
+              currGroupIndex++; //increment current group index now that we've added the old one to the array
+              str = "";
+          }
+          str += checkboxValsArray[i].val + ", ";
+          console.log(str);
+          console.log(checkboxValsArray);
+      }
+
+      result[currGroupIndex] = [str.substring(0,str.length-2)];
+      console.log(result);
+      return result;
+  }
+
+  /*
+   Returns the time in seconds between time1 and time2
+   */
+  function getSecondsBetween_(time1, time2) {
+      return (new Date(Math.abs(time1 - time2)).getTime())/1000;
+  }
+
   function submitHandler(e) {
       $('#submit-form').attr("disabled", "disabled");
       $('input[type="number"]').each(function () {
@@ -559,13 +612,115 @@
           match: matchSelected,
           team: teamSelected,
           alliance: allianceSelected,
-          submitTime: firebase.database.ServerValue.TIMESTAMP
+          submitTime: firebase.database.ServerValue.TIMESTAMP,
+          user: firebase.auth().currentUser.uid
       };
 
+      var r = {
+          timestamp: firebase.database.ServerValue.TIMESTAMP,
+          user: firebase.auth().currentUser.uid,
+          match: formAnswers.meta.match,
+          team: formAnswers.meta.team,
+          alliance: formAnswers.meta.alliance,
+          auton: {
+              startTime: null,
+              pointsScored: parseInt(formAnswers.text["auton-pts-scored"]),
+              actions: null
+          },
+          robot: {
+              type: null,
+              strafes: formAnswers.radio["robot-strafes"],
+              hang: {
+                  startTime: null,
+                  endTime: null,
+                  duration: null,
+                  result: formAnswers.radio["driver-hang-result"],
+                  partnerHelp: formAnswers.radio["hang-assistance"]
+              },
+              scoredObjects: JSON.stringify(formAnswers.scoredObjs)
+          }
+
+      }; //r is the processed formResponses object; in the future, this should be
+            //done server-side to reduce client JS load and to prevent tampering with data
+
+
+      var checkboxStrings = checkboxToString(formAnswers.checkbox);
+      r.auton.actions = checkboxStrings[0].toString();
+      r.robot.type = checkboxStrings[1].toString();
+      console.log(r);
+
+      var autonPlayStart,
+          dcHangDuration,
+          dcHangStart,
+          dcHangEnd;
+
+      try {
+          if (formAnswers.text["other-team-num"] !== "") {
+              r.team = formAnswers.text["other-team-num"].toUpperCase();
+          }
+      } catch (e) {
+          console.log(e);
+      }
+
+      try {
+          if (formAnswers.text["manual-match-num"] !== "") {
+              r.match = "Q" + formAnswers.text["manual-match-num"];
+          }
+      } catch (e) {
+          Logger.log(e);
+      }
+
+      //autonStart is when the autonomous period starts
+      //auton-start-time is the marked time (result of pressing "Mark time" button) for when the autonomous period starts
+      if (formAnswers.markedTimes["auton-start-time"] !== "") {
+          autonPlayStart = 15 - getSecondsBetween_(parseInt(formAnswers.markedTimes["autonStart"]),parseInt(formAnswers.markedTimes["auton-start-time"]));
+      } else if (parseInt(formAnswers.text["auton-play-start-time"]) >= 0 && parseInt(formAnswers.text["auton-play-start-time"]) <= 15) {
+          autonPlayStart = parseInt(formAnswers.text["auton-play-start-time"]);
+      } else {
+          autonPlayStart = "unknown";
+      }
+      r.auton.startTime = autonPlayStart;
+
+
+      if (formAnswers.markedTimes["dc-hang-start"] !== "") {
+          dcHangStart = 105 - getSecondsBetween_(parseInt(formAnswers.markedTimes.driverStart),parseInt(formAnswers.markedTimes["dc-hang-start"]));
+      } else if (parseInt(formAnswers.text["dc-hang-start-time"]) >= 0 && parseInt(formAnswers.text["dc-hang-start-time"]) <= 105) {
+          dcHangStart = parseInt(formAnswers.text["dc-hang-start-time"]);
+      } else {
+          dcHangStart = "unknown";
+      }
+      r.robot.hang.startTime = dcHangStart;
+
+      if (formAnswers.markedTimes["dc-hang-end"] !== "") {
+          dcHangEnd = 105 - getSecondsBetween_(parseInt(formAnswers.markedTimes.driverStart),parseInt(formAnswers.markedTimes["dc-hang-end"]));
+      } else if (parseInt(formAnswers.text["dc-hang-end-time"]) >= 0 && parseInt(formAnswers.text["dc-hang-end-time"]) <= 105) {
+          dcHangEnd = parseInt(formAnswers.text["dc-hang-end-time"]);
+      } else {
+          dcHangEnd = "unknown";
+      }
+      r.robot.hang.endTime = dcHangEnd;
+
+      if (dcHangStart > dcHangEnd) {
+          dcHangDuration = dcHangStart - dcHangEnd
+      } else {
+          dcHangDuration = "Unknown (hang start time was later than end time)";
+      }
+      r.robot.hang.duration = dcHangDuration;
+
       var orgID = 0;
-      var tournamentID = 2;
-      var pushRef = firebase.database().ref("/scouting/" + orgID + "/" + tournamentID).push();
-      pushRef.set(formAnswers);
+      var tournamentID = 0;
+      console.log("ran");
+      console.log(formAnswers);
+      var pushRef= firebase.database().ref("/scouting/" + org + "/" + tournament).push();
+      pushRef.set(r).then(function() {
+          $('#submit-form').removeAttr("disabled");
+          $('#submit-success').removeClass("hidden");
+      }).catch(function(e) {
+          console.error(error);
+          $('#submit-form').removeAttr("disabled");
+          $('#submit-error-msg').text(error);
+          $('#submit-error').removeClass("hidden");
+      });
 
       /*google.script.run.withSuccessHandler(function (result) {
           console.log(result);
