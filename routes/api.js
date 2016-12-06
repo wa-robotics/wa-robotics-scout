@@ -58,7 +58,7 @@ function getMatch(res, sku, round, instance, matchNum) {
     });
 }
 
-router.post('/scout/:org/:tournament/:qmatchnum', function (req,res,next) {
+router.get('/scout/:org/:tournament/:qmatchnum', function (req,res,next) {
     res.set("Content-Type","application/json");
     let userToken = req.query.token;
     getScoutingInfoMatchFb(res, req.body);
