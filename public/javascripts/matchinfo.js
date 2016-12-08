@@ -104,7 +104,18 @@ firebaseInit();
 function initialize() {
     componentHandler.upgradeAllRegistered(); //to make sure the loading spinner appears and not just "Loading..."
 
-    $.ajax("", { data: firebase.auth().getCurrentUser().getToken(), success: test, method: "POST"})
+    firebase.auth().onAuthStateChanged(function (user) {
+        if (user) {
+            signedInUser = user;
+            $("#sign-in").hide();
+            $.ajax("/api/scout/1/1/1", { data: firebase.auth().getCurrentUser().getToken(), success: test, method: "POST"});
+            //getUserOrgs();
+        } else {
+            window.location = "/auth"; //user is not signed in, redirect to sign in page
+        }
+    });
+
+
 
     //show a warning if the user is looking at a match for a different team (one that they aren't on)
     /*if (userTeam !== queryTeam) {

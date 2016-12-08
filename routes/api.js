@@ -58,10 +58,14 @@ function getMatch(res, sku, round, instance, matchNum) {
     });
 }
 
-router.get('/scout/:org/:tournament/:qmatchnum', function (req,res,next) {
-    res.set("Content-Type","application/json");
-    let userToken = req.query.token;
-    getScoutingInfoMatchFb(res, req.body);
+router.post('/scout/:org/:tournament/:qmatchnum', function (req,res,next) {
+    console.log("ran");
+    //res.set("Content-Type","application/json");
+    let userToken = req.body.token;
+    console.log(userToken);
+    //res.send(userToken);
+    //console.log(userToken);
+    getScoutingInfoMatchFb(res, userToken);
 });
 
 router.get('/:sku/:team', function (req, res, next) {
@@ -77,16 +81,24 @@ router.get('/:sku/match/:round/:instance/:num', (req,res,next) => {
     getMatch(res, req.params.sku, parseInt(req.params.round), parseInt(req.params.instance), parseInt(req.params.num));
 });
 
+
+function getUid(token) {
+    return admin.auth().verifyIdToken(token)
+        .then(function(decodedToken) {
+            return decodedToken.uid;
+            // ...
+        });
+}
+
 /* Scouting API */
 function getScoutingInfoMatchFb (res, token) {
-    admin.auth().verifyIdToken(token)
-        .then(function(decodedToken) {
-            var uid = decodedToken.uid;
-            res.send("uid is " + uid);
-        }).catch(function(error) {
-        // Handle error
+    //res.send(token);
+    Promise.all([getUid(token)]).then(function(snapshots) {
+        console.log(snapshots);
+        console.log("User ID: " + snapshots[0]);
+        res.send({ "userID":snapshots[0]});
     });
-    res.send("\n hi");
+    //res.send("\n hi");
 }
 
 
