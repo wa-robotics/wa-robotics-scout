@@ -93,27 +93,73 @@ function firebaseInit() {
     firebase.initializeApp(config);
 }
 var config = {
-    apiKey: "AIzaSyAIvK9HrI4P7MJlzjOHmcWeja2BPEInuTo"
-    , authDomain: "wa-robotics-scout.firebaseapp.com"
-    , databaseURL: "https://wa-robotics-scout.firebaseio.com"
-    , storageBucket: "wa-robotics-scout.appspot.com"
-    , messagingSenderId: "490870467180"
+    apiKey: "AIzaSyAIvK9HrI4P7MJlzjOHmcWeja2BPEInuTo",
+    authDomain: "wa-robotics-scout.firebaseapp.com",
+    databaseURL: "https://wa-robotics-scout.firebaseio.com",
+    storageBucket: "wa-robotics-scout.appspot.com",
+    messagingSenderId: "490870467180"
 };
 firebaseInit();
+
+function renderMatchInfo(data) {
+    console.log(data);
+    processResults(data);
+}
+
+
+function getScoutingInfo(matchData) {
+    var data = matchData.results[0];
+    console.log(data);
+
+    var teams = [];
+    if (data.blue3 !== "") {//there's a 3rd team on the blue alliance, so account for 3 team alliances
+        teams = [data.red1,data.red2,data.red3,data.blue1,data.blue2,data.blue3];
+    } else { //qual or practice match, 2 team alliances
+        teams = [data.red1,data.red2,data.blue1,data.blue2];
+    }
+
+    //fetch scouting info for each team from Firebase
+
+    //do this for each team
+    firebase.database().ref('/scouting/0/0').orderByChild("team").equalTo("675C").orderByChild("timestamp").limitToLast(1).once('value').then(function (snapshot) {
+        return snapshot.val();
+        //getTeamsInMatch(sku);
+    });
+    //query API and get current rank/OPR/DPR/CCWM data for each team in the match
+
+
+
+}
+
+function getTeamsInMatch(sku) {
+    var matchnum = parseInt(qmatch);
+    $.ajax('/api/' + sku + '/match/2/1/' + qmatch, {
+        success:getScoutingInfo
+    });
+}
+
+firebase.auth().onAuthStateChanged(function (user) {
+    if (user) {
+        signedInUser = user;
+        $("#sign-in").hide();
+        /*firebase.auth().currentUser.getToken(true).then(function(idToken) {
+            $.ajax("/api/scout/" + org + "/" + tournament + "/" + qmatch, { data: JSON.stringify({"token":idToken}),
+                dataType:"json", success:renderMatchInfo,method: "POST",contentType:"application/json"});
+        });*/
+        firebase.database().ref('/tournaments/' + tournament + '/sku').once('value').then(function (snapshot) {
+            sku = snapshot.val();
+            getTeamsInMatch(sku);
+        });
+
+    } else {
+        window.location = "/auth"; //user is not signed in, redirect to sign in page
+    }
+});
 
 function initialize() {
     componentHandler.upgradeAllRegistered(); //to make sure the loading spinner appears and not just "Loading..."
 
-    firebase.auth().onAuthStateChanged(function (user) {
-        if (user) {
-            signedInUser = user;
-            $("#sign-in").hide();
-            $.ajax("/api/scout/1/1/1", { data: firebase.auth().getCurrentUser().getToken(), success: test, method: "POST"});
-            //getUserOrgs();
-        } else {
-            window.location = "/auth"; //user is not signed in, redirect to sign in page
-        }
-    });
+
 
 
 

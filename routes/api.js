@@ -1,21 +1,21 @@
 var express = require('express');
 var router = express.Router();
 var request = require('request');
-var admin = require("firebase-admin");
-var serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_KEY);
+//var admin = require("firebase-admin");
+//var serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_KEY);
 
 
-admin.initializeApp({
+/*admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
     databaseURL: "https://wa-robotics-scout.firebaseio.com"
-});
+});*/
 
 function getTeamMatchesVexDb(res, sku, teamNum) {
     teamNum = teamNum.toString();
     if (!/^[0-9]{1,5}[a-zA-Z]?$/.test(teamNum)) {
         res.send(JSON.stringify({
-            error: 1
-            , message: "Invalid team number entered"
+            error: 1,
+            message: "Invalid team number entered"
         }));
     }
     else {
@@ -58,15 +58,16 @@ function getMatch(res, sku, round, instance, matchNum) {
     });
 }
 
+/*
 router.post('/scout/:org/:tournament/:qmatchnum', function (req,res,next) {
     console.log("ran");
     //res.set("Content-Type","application/json");
     let userToken = req.body.token;
-    console.log(userToken);
+    console.log("user token",userToken);
     //res.send(userToken);
     //console.log(userToken);
-    getScoutingInfoMatchFb(res, userToken);
-});
+    getScoutingInfoMatchFb(req,res, userToken);
+});*/
 
 router.get('/:sku/:team', function (req, res, next) {
     res.set('Content-Type', 'application/json');
@@ -81,25 +82,41 @@ router.get('/:sku/match/:round/:instance/:num', (req,res,next) => {
     getMatch(res, req.params.sku, parseInt(req.params.round), parseInt(req.params.instance), parseInt(req.params.num));
 });
 
-
+/*
 function getUid(token) {
+    console.log(token);
     return admin.auth().verifyIdToken(token)
         .then(function(decodedToken) {
+            admin.initializeApp({
+                uid: decodedToken.uid,
+                credential: admin.credential.cert(serviceAccount),
+                databaseURL: "https://wa-robotics-scout.firebaseio.com"
+            }, 'asUser');
             return decodedToken.uid;
             // ...
         });
-}
+}*/
 
 /* Scouting API */
-function getScoutingInfoMatchFb (res, token) {
+/*
+function getScoutingInfoMatchFb (req, res, token) {
+    console.log(token);
     //res.send(token);
     Promise.all([getUid(token)]).then(function(snapshots) {
         console.log(snapshots);
         console.log("User ID: " + snapshots[0]);
-        res.send({ "userID":snapshots[0]});
+        //sendScoutingInfo(req.params.org,req.params.tournament,req.params.qmatchnum);
+        //res.send({ "userID":snapshots[0]});
+
+    }).then(function() {
+        admin.database("asUser").ref("/").once("value").then(function(snapshot){
+            console.log(snapshot);
+        });
+    }).catch(function(error) {
+        res.send({"status":0,"error":"Problem with user token","firebase_error":error.message});
     });
     //res.send("\n hi");
-}
+}*/
 
 
 
