@@ -733,3 +733,8 @@
           $('#submit-error').removeClass("hidden");
       }).submitResponses(formAnswers);*/
   }
+
+  function signOut() {
+      firebase.auth().signOut();
+  }
+

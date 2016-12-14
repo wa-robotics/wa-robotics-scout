@@ -22,9 +22,9 @@
 <body class="mdl-color--grey-50">
 <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
     <% if (showMenu) { %>
-    <%- include('nav', {includeMenu: true}); %>
+    <%- include('nav', {includeMenu: true, includeSignOut: true}); %>
     <% } else { %>
-    <%- include('nav', {includeMenu: false}); %>
+    <%- include('nav', {includeMenu: false, includeSignOut: false}); %>
     <% } %>
     <main class="mdl-layout__content">
         <div class="page-content">

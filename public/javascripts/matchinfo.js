@@ -105,6 +105,9 @@ function renderMatchInfo(data) {
     console.log(data);
     processResults(data);
 }
+function signOut() {
+    firebase.auth().signOut();
+}
 
 
 function getScoutingInfo(matchData) {

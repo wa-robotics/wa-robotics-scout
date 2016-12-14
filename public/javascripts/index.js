@@ -359,6 +359,9 @@
       firebase.initializeApp(config);
   }
 
+  function signOut() {
+      firebase.auth().signOut();
+  }
 
   firebase.auth().onAuthStateChanged(function (user) {
       if (user) {

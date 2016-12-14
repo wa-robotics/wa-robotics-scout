@@ -52,14 +52,18 @@
 </head>
 
 <body class="mdl-color--grey-50">
+<script>
+    var orgJoinCode = "<%- orgJoin%>"
+</script>
 <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
-    <%- include('nav', {includeMenu: false}); %>
+    <%- include('nav', {includeMenu: false, includeSignOut: false}); %>
     <main class="mdl-layout__content">
         <div class="page-content">
             <div class="mdl-grid">
                 <div id="sign-in-container" class="mdl-cell--4-col-desktop mdl-cell--4-offset-desktop mdl-cell--6-col-tablet mdl-cell--1-offset-tablet mdl-cell-4-col-phone">
                     <h4 class="mdl-typography--text-center">Sign in to WA Robotics Scout</h4>
-                    <div class="mdl-spinner mdl-spinner--single-color mdl-js-spinner is-active" id="sign-in-loading"></div>
+                    <% if (orgJoin !== false) { %><h6 class="hidden mdl-typography--text-center">After you sign in, you'll be added to the <strong><span id="org-join-name"></span></strong> organization</h6>
+                    <% } %><div class="mdl-spinner mdl-spinner--single-color mdl-js-spinner is-active" id="sign-in-loading"></div>
                     <div class="hidden" id="firebaseui-auth-container"></div>
                 </div>
             </div>

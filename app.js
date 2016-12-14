@@ -10,6 +10,7 @@ const api = require("./routes/api");
 const scout = require("./routes/scout");
 const authFlow = require("./routes/auth");
 const utils = require("./utils");
+const orgJoin = require("./routes/orgJoin");
 const app = express();
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
@@ -32,12 +33,13 @@ app.use("/search", search);
 app.use("/api", api);
 app.use("/scout", scout);
 app.use("/auth", authFlow);
+app.use("/join",orgJoin);
 app.use("/terms/privacy", function (req, res, next) {
         res.render("privacypolicy", {
-            title: "WARS: Privacy policy"
-            , showMenu: true
+            title: "WARS: Privacy policy",
+            showMenu: true
         });
-    })
+    });
     // catch 404 and forward to error handler
 app.use(function (req, res, next) {
     const err = new Error("Not Found");
