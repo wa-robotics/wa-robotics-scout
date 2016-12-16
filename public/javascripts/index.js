@@ -64,7 +64,7 @@
               alliance = "blue-alliance";
               alliancePosition = "blue3";
           }
-          if (currentMatch.scored) { //if this match has been scored
+          if (parseInt(currentMatch.scored)) { //if this match has been scored
               scoreAvailable = true;
               effectiveAllianceColor = "match-done";
           }
@@ -149,7 +149,7 @@
                   matchResult = "lost";
               }
               if (winningAlliance === "tie") {
-                  matchResultsString ="<strong>You"+ matchResult +"</strong>"+ scoresString +"<br />";
+                  matchResultsString ="<strong>You "+ matchResult +"</strong> "+ scoresString +"<br />";
               }
               else {
                   matchResultsString = '<span class="' + alliance + '-text"><strong>You ' + matchResult + '</strong></span> ' + scoresString +"<br />";
