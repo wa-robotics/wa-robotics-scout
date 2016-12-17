@@ -58,6 +58,19 @@ function getMatch(res, sku, round, instance, matchNum) {
     });
 }
 
+function getTeamRankInfo(res, sku, team) {https://api.vexdb.io/v1/get_rankings?sku=RE-VRC-16-5088&team=1961D
+    request("https://api.vexdb.io/v1/get_rankings?sku=" + sku + "&team=" + team, (error, response, body) => {
+        var raw = body;
+        var parsed = JSON.parse(raw);
+        var results = {
+            status: 1,
+            results: parsed.result
+        };
+        console.log(results);
+        res.send(JSON.stringify(results));
+    });
+}
+
 /*
 router.post('/scout/:org/:tournament/:qmatchnum', function (req,res,next) {
     console.log("ran");
@@ -81,6 +94,12 @@ router.get('/:sku/match/:round/:instance/:num', (req,res,next) => {
     res.set('Content-Type', 'application/json');
     getMatch(res, req.params.sku, parseInt(req.params.round), parseInt(req.params.instance), parseInt(req.params.num));
 });
+
+router.get('/:sku/rank/:team', (req,res,next) => {
+    res.set('Content-Type', 'application/json');
+    getTeamRankInfo(res, req.params.sku, req.params.team);
+});
+
 
 /*
 function getUid(token) {
