@@ -10,13 +10,18 @@
     <link rel="stylesheet" href="https://code.getmdl.io/1.1.3/material.blue_grey-orange.min.css" />
     <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-    <link rel="stylesheet" href="stylesheets/global.css" type="text/css" />
-    <link rel="stylesheet" href="stylesheets/scouting.css" type="text/css" /> </head>
+    <link rel="stylesheet" href="../../../stylesheets/global.css" type="text/css" />
+    <link rel="stylesheet" href="../../../stylesheets/scouting.css" type="text/css" />
+</head>
 
 <body class="mdl-color--grey-50">
     <!--This lets the Javascript on this page use variables passed from the server.-->
+    <script>
+        var org = "<%= org %>",
+            tournament = "<%= tournament %>";
+    </script>
     <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
-        <%- include('nav', {includeMenu: true}); %>
+        <%- include('nav', {includeMenu: true, includeSignOut: true}); %>
             <main class="mdl-layout__content">
                 <div class="page-content">
                     <div class="question">
@@ -253,7 +258,8 @@
     <script src="https://code.getmdl.io/1.1.3/material.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/3.5.0/firebase.js"></script>
-    <script src="javascripts/scouting.js"></script>
+    <script src="../../../javascripts/scouting.js"></script>
+    <%- include("analytics"); %>
 </body>
 
 </html>

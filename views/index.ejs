@@ -15,7 +15,7 @@
 
 <body class="mdl-color--grey-50">
     <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
-        <%- include('nav', {includeMenu: true}); %>
+        <%- include('nav', {includeMenu: true, includeSignOut: true}); %>
             <main class="mdl-layout__content">
                 <div class="page-content">
                     <div class="mdl-grid hidden" id="show-diff-team">
@@ -68,6 +68,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/3.5.0/firebase.js"></script>
     <script src="javascripts/index.js"></script>
+    <%- include("analytics"); %>
 </body>
 
 </html>

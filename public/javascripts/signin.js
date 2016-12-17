@@ -5,9 +5,8 @@ firebase.auth().onAuthStateChanged(function (user) {
             if (!snapshot.val()) {
                 writeUserData(signedInUser.uid, signedInUser.displayName, signedInUser.email, signedInUser.photoURL);
             }
-            console.log(getUserOrgs());
         });
-        window.location = "/";
+
     }
     else {
         $("#firebaseui-auth-container").removeClass("hidden");

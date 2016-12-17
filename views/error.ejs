@@ -22,9 +22,9 @@
 <body class="mdl-color--grey-50">
 <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
     <% if (showMenu) { %>
-    <%- include('nav', {includeMenu: true}); %>
+    <%- include('nav', {includeMenu: true, includeSignOut: true}); %>
     <% } else { %>
-    <%- include('nav', {includeMenu: false}); %>
+    <%- include('nav', {includeMenu: false, includeSignOut: false}); %>
     <% } %>
     <main class="mdl-layout__content">
         <div class="page-content">
@@ -34,9 +34,12 @@
                     <p>
                         <% if (notFound) { %>
                         The page you're trying to go to doesn't exist.
-                        <% } else {%>
-                        Hm, we can't process your request right now.
-                    <% }%>
+                        <% } else if (error.status === 1) {%>
+                            A valid SKU is required to access the scouting form.  Please try again using the link in the
+                        side bar on the homepage.
+                        <% } else { %>
+                            Hm, we can't process your request right now..
+                        <% }%>
                         Instead:
                     <ul>
                         <li><a href="/">Return to homepage</a></li>
@@ -53,6 +56,7 @@
 </div>
 <script src="https://code.getmdl.io/1.1.3/material.min.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<%- include("analytics"); %>
 </body>
 
 </html>

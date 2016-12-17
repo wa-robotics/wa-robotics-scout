@@ -10,13 +10,14 @@
   };
   firebaseInit();
   var globalInfo = {};
-
+  var sku;
   function loadMatchData(data, forOtherMatch) {
       console.log("data", data);
       console.log("data.results", data.results);
       console.log("data.status", data.status);
       /*data.status = 0;
       data.error = {message: "Invalid request type specified.  Check API docs." };*/
+      //console.log("data.status",parseInt(data.status));
       if (parseInt(data.status)) { //api call successful
           if (data.results.length > 0 && !forOtherMatch) {
               data.results.forEach(function (matchInfo, index, array) {
@@ -26,7 +27,8 @@
                   }
               });
           }
-          else if (data.results && forOtherMatch) {
+          else if (data.results.length >= 0 && forOtherMatch) {
+              console.log("inside if statement");
               var needToResetMatchSelector = false;
               //console.log("if ($('#added-by-other').hasClass('selected')) = " + $('#added-by-other').hasClass('red-alliance-selected') || $('#added-by-other').hasClass('blue-alliance-selected'));
               if ($('#added-by-other').hasClass('red-alliance-selected') || $('#added-by-other').hasClass('blue-alliance-selected')) { //if the currently selected match (before updating the display) is no longer going to be displayed, remove the not-selected classes from the other matches being shown
@@ -34,27 +36,32 @@
               }
               var oldMatchNum = parseInt($('#added-by-other.team-select > .match-row > .match-number').text().slice(1));
               $('#added-by-other').remove();
-              var matchInfo = data.results;
+              var matchInfo = data.results[0];
               //console.log(oldMatchNum);
               //console.log("typeof omn " + typeof oldMatchNum);
-              if (parseInt(matchInfo.round) === 2) { //only show qualification matches (round 2)
-                  $('#other-match-num').val(""); //clear the other match field
-                  if (!isNaN(oldMatchNum)) { //we only need to do this when oldMatchNumber has a value and isn't NaN - i.e., only after the second other search
-                      removeFromArray(oldMatchNum, matchesVisible);
+              //console.log("parseInt(matchInfo.round)",parseInt(matchInfo.round));
+              if (data.results.length > 0) {
+                  if (parseInt(matchInfo.round) === 2) { //only show qualification matches (round 2)
+                      console.log("inside second if statement");
+                      $('#other-match-num').val(""); //clear the other match field
+                      if (!isNaN(oldMatchNum)) { //we only need to do this when oldMatchNumber has a value and isn't NaN - i.e., only after the second other search
+                          removeFromArray(oldMatchNum, matchesVisible);
+                      }
+                      matchesVisible.push(matchInfo.matchnum); //add to array of visible matches
+                      var notSelectedPhrase = (matchSelected) ? " not-selected" : ""; //make sure the match added is styled correctly
+                      $('<div class="team-select' + notSelectedPhrase + '" id="added-by-other"><div class="match-row"> <div class="row-team option-red-alliance">' + matchInfo.red1 + '</div><div class="row-team filler"></div><div class="row-team option-red-alliance">' + matchInfo.red2 + '</div><div class="match-number">Q' + matchInfo.matchnum + '</div><div class="row-team option-blue-alliance">' + matchInfo.blue1 + '</div><div class="row-team filler"></div><div class="row-team option-blue-alliance">' + matchInfo.blue2 + '</div></div></div>').insertBefore('#select-other-match');
                   }
-                  matchesVisible.push(matchInfo.matchnum); //add to array of visible matches
-                  var notSelectedPhrase = (matchSelected) ? " not-selected" : ""; //make sure the match added is styled correctly
-                  $('<div class="team-select' + notSelectedPhrase + '" id="added-by-other"><div class="match-row"> <div class="row-team option-red-alliance">' + matchInfo.red1 + '</div><div class="row-team filler"></div><div class="row-team option-red-alliance">' + matchInfo.red2 + '</div><div class="match-number">Q' + matchInfo.matchnum + '</div><div class="row-team option-blue-alliance">' + matchInfo.blue1 + '</div><div class="row-team filler"></div><div class="row-team option-blue-alliance">' + matchInfo.blue2 + '</div></div></div>').insertBefore('#select-other-match');
-              }
-              else if (parseInt(matchInfo.round) < 2 || parseInt(matchInfo.round) > 2) {
-                  $('<p class="error" id="added-by-other"><i class="material-icons">error_outline</i> Match found is not a qualification match; please try again with a qualifcation match number</p>').insertBefore('#select-other-match');
-              }
-              else if (matchInfo === -1) {
+                  else if (parseInt(matchInfo.round) < 2 || parseInt(matchInfo.round) > 2) {
+                      $('<p class="error" id="added-by-other"><i class="material-icons">error_outline</i> Match found is not a qualification match; please try again with a qualifcation match number</p>').insertBefore('#select-other-match');
+                  }
+              } else if (data.results.length === 0) {
+                  console.log("inside match not found");
                   $('<p class="error" id="added-by-other"><i class="material-icons">error_outline</i> Match not found</p>').insertBefore('#select-other-match');
               }
               if (needToResetMatchSelector) { //do this after the new match has been added to the page
                   resetMatchSelector();
               }
+              console.log("got to removeattr");
               $('#other-match-num, #submit-other-match').removeAttr("disabled"); //enable submit button and entry field
           }
           else if (!forOtherMatch) {
@@ -65,6 +72,7 @@
                   resetMatchSelector();
               }
               $('<p class="error"><i class="material-icons">error_outline</i> Match not found</p>').insertBefore('#select-other-match');
+              $('#other-match-num, #submit-other-match').removeAttr("disabled"); //enable submit button and entry field
           }
       }
       else { //status is 0 - an error occurred
@@ -125,7 +133,7 @@
 
   function finishGetUnscoredMatches(sku) {
       "use strict";
-      jQuery.ajax("/api/" + sku + '/unscored/3', {
+      $.ajax("/api/" + sku + "/unscored/3", {
           success: callLoadMatchDataReg
       });
   }
@@ -135,8 +143,9 @@
       //load matches for match selector
       //DISABLE NO REFRESH FLAG!!!!!
       //$('body').append('<script src=\"https://script.google.com/a/macros/woodward.edu/s/AKfycbxsKMe0cdyYScaJXipBoA2bFSY8Aj-jxlQqyS4aDOI/exec?type=getUnscoredMatchInfo&numMatches=3&id=' + instanceID + '&prefix=loadMatchData&norefresh=true\"><\/script>');
-      firebase.database().ref('/tournaments/0/sku').once('value').then(function (snapshot) {
-          finishGetUnscoredMatches(snapshot.val());
+      firebase.database().ref('/tournaments/' + tournament + '/sku').once('value').then(function (snapshot) {
+          sku = snapshot.val();
+          finishGetUnscoredMatches(sku);
       });
       $('#start-auton-timer').click(function () {
           $('#ready-auton').addClass('hidden');
@@ -361,7 +370,7 @@
   }
 
   function loadOtherMatchData(data) {
-      console.log(data);
+      console.log("loadothermatch",data);
       loadMatchData(data, true);
   }
 
@@ -386,11 +395,13 @@
       }
       //console.log(typeof matchNum);
       //console.log(matchesVisible);
-      if (typeof matchNum === "number" && matchNum >= 1 && !matchIsVisible) { //only make the api request if there's an postive non-zero integer in the match number input
+      if (typeof matchNum === "number" && matchNum >= 1 && !matchIsVisible) { //only make the api request if there's an positive non-zero integer in the match number input
           $("#added-by-other, #match-is-visible").addClass("hidden");
           $("#match-selector-data-loading").removeClass("hidden").addClass("is-active"); //show loading spinner
           $("#other-match-num, #submit-other-match").attr("disabled", "disabled"); //disable submit button and entry field
-          //$('body').append('<script src=\"https://script.google.com/a/macros/woodward.edu/s/AKfycbxsKMe0cdyYScaJXipBoA2bFSY8Aj-jxlQqyS4aDOI/exec?type=getMatchInfo&id=' + instanceID + '&prefix=loadOtherMatchData&norefresh=true&match=' + matchNum + '\"><\/script>');
+          $.ajax("/api/" + sku + "/match/2/1/" + matchNum, {
+              success: loadOtherMatchData
+          });
       }
       else if (matchIsVisible) {
           $("#match-is-visible").removeClass("hidden");
@@ -468,8 +479,9 @@
           var normY = round(e.offsetY / percent, 2);
           formAnswers.scoredObjs.push(new ScoredObject(time, normX, normY));
           //console.log(time);
+          var lastScoredObj;
           if (formAnswers.scoredObjs.length >= 2) {
-              var lastScoredObj = new Date(formAnswers.scoredObjs[formAnswers.scoredObjs.length - 2].time).getTime(); //since we've already added the new scored object to scoredObjs by now, we need the second-to-last element in the array
+              lastScoredObj = new Date(formAnswers.scoredObjs[formAnswers.scoredObjs.length - 2].time).getTime(); //since we've already added the new scored object to scoredObjs by now, we need the second-to-last element in the array
           }
           else {
               numStarGroupsEntered++; //increment numStarGroupsEntered the first time the field is clicked and there's no other ScoredObject entry to compare the time to
@@ -515,8 +527,6 @@
           }
           $('#num-locs-entered').text(numStarGroupsEntered); //update text showing number of star groups entered
       }
-      else { //show nothing to undo error and/or have undo button not shown
-      }
   }
 
   function endScoringLocations(callerThis) {
@@ -526,6 +536,58 @@
       //   since the last input and the user is likely done (hitting undo will also remove the 2.5 second timeout for the last scoring group
       //   and won't add one back until the next input)
       scoredObjsQuestionEnabled = false;
+  }
+
+  function checkboxToString(checkboxes) {
+      var autonActions = ["Scored star in near or far zone","Scored cube in near or far zone","Knocked star(s) off fence","Hung high","Hung low"];
+      var robotTypes = ["Catapult","Dumper"];
+      var stem = "",
+          checkboxValsArray = [],
+          str = "",
+          result = [];
+      console.log(checkboxes);
+      for (var id in checkboxes) {
+          checkboxValsArray.push({"id": id, "val":checkboxes[id]});
+      }
+
+      checkboxValsArray.sort(function(a,b) {
+          if (a.id > b.id) {
+              return 1;
+          } else if (a.id < b.id) {
+              return -1;
+          }
+          return 0;
+      });
+      console.log(checkboxValsArray);
+
+      var value,
+          currGroupIndex = 0;
+      stem = checkboxValsArray[0].id.substring(0,id.indexOf("-") + 1);
+      for (var i = 0; i < checkboxValsArray.length; i++) {
+          id = checkboxValsArray[i].id;
+          console.log(id.substring(0,id.indexOf("-") + 1))
+          if (id.substring(0,id.indexOf("-") + 1) !== stem) {
+              console.log("new stem");
+              stem = id.substring(0,id.indexOf("-") + 1);
+              result[currGroupIndex] = [str.substring(0,str.length-2)];
+              currGroupIndex++; //increment current group index now that we've added the old one to the array
+              str = "";
+          }
+          str += checkboxValsArray[i].val + ", ";
+          console.log(str);
+          console.log(checkboxValsArray);
+      }
+
+      result[currGroupIndex] = [str.substring(0,str.length-2)];
+      console.log(result);
+      return result;
+  }
+
+  /*
+   Returns the time in seconds between time1 and time2
+   */
+  function getSecondsBetween_(time1, time2) {
+      return (new Date(Math.abs(time1 - time2)).getTime())/1000;
   }
 
   function submitHandler(e) {
@@ -546,12 +608,120 @@
         formAnswers.checkbox[$(this).attr('id')] = $(this).siblings('span').text();
       });*/
       formAnswers.meta = {
-          autonWinner: autonWinner
-          , match: matchSelected
-          , team: teamSelected
-          , alliance: allianceSelected
-          , submitTime: Date.now()
+          autonWinner: autonWinner,
+          match: matchSelected,
+          team: teamSelected,
+          alliance: allianceSelected,
+          submitTime: firebase.database.ServerValue.TIMESTAMP,
+          user: firebase.auth().currentUser.uid
       };
+
+      var r = {
+          timestamp: firebase.database.ServerValue.TIMESTAMP,
+          user: firebase.auth().currentUser.uid,
+          match: formAnswers.meta.match,
+          team: formAnswers.meta.team,
+          alliance: formAnswers.meta.alliance,
+          auton: {
+              startTime: null,
+              pointsScored: parseInt(formAnswers.text["auton-pts-scored"]),
+              actions: null
+          },
+          robot: {
+              type: null,
+              strafes: formAnswers.radio["robot-strafes"],
+              hang: {
+                  startTime: null,
+                  endTime: null,
+                  duration: null,
+                  result: formAnswers.radio["driver-hang-result"],
+                  partnerHelp: formAnswers.radio["hang-assistance"]
+              },
+              scoredObjects: JSON.stringify(formAnswers.scoredObjs)
+          }
+
+      }; //r is the processed formResponses object; in the future, this should be
+            //done server-side to reduce client JS load and to prevent tampering with data
+
+
+      var checkboxStrings = checkboxToString(formAnswers.checkbox);
+      r.auton.actions = checkboxStrings[0].toString();
+      r.robot.type = checkboxStrings[1].toString();
+      console.log(r);
+
+      var autonPlayStart,
+          dcHangDuration,
+          dcHangStart,
+          dcHangEnd;
+
+      try {
+          if (formAnswers.text["other-team-num"] !== "") {
+              r.team = formAnswers.text["other-team-num"].toUpperCase();
+          }
+      } catch (e) {
+          console.log(e);
+      }
+
+      try {
+          if (formAnswers.text["manual-match-num"] !== "") {
+              r.match = "Q" + formAnswers.text["manual-match-num"];
+          }
+      } catch (e) {
+          Logger.log(e);
+      }
+
+      //autonStart is when the autonomous period starts
+      //auton-start-time is the marked time (result of pressing "Mark time" button) for when the autonomous period starts
+      if (formAnswers.markedTimes["auton-start-time"] !== "") {
+          autonPlayStart = 15 - getSecondsBetween_(parseInt(formAnswers.markedTimes["autonStart"]),parseInt(formAnswers.markedTimes["auton-start-time"]));
+      } else if (parseInt(formAnswers.text["auton-play-start-time"]) >= 0 && parseInt(formAnswers.text["auton-play-start-time"]) <= 15) {
+          autonPlayStart = parseInt(formAnswers.text["auton-play-start-time"]);
+      } else {
+          autonPlayStart = "unknown";
+      }
+      r.auton.startTime = autonPlayStart;
+
+
+      if (formAnswers.markedTimes["dc-hang-start"] !== "") {
+          dcHangStart = 105 - getSecondsBetween_(parseInt(formAnswers.markedTimes.driverStart),parseInt(formAnswers.markedTimes["dc-hang-start"]));
+      } else if (parseInt(formAnswers.text["dc-hang-start-time"]) >= 0 && parseInt(formAnswers.text["dc-hang-start-time"]) <= 105) {
+          dcHangStart = parseInt(formAnswers.text["dc-hang-start-time"]);
+      } else {
+          dcHangStart = "unknown";
+      }
+      r.robot.hang.startTime = dcHangStart;
+
+      if (formAnswers.markedTimes["dc-hang-end"] !== "") {
+          dcHangEnd = 105 - getSecondsBetween_(parseInt(formAnswers.markedTimes.driverStart),parseInt(formAnswers.markedTimes["dc-hang-end"]));
+      } else if (parseInt(formAnswers.text["dc-hang-end-time"]) >= 0 && parseInt(formAnswers.text["dc-hang-end-time"]) <= 105) {
+          dcHangEnd = parseInt(formAnswers.text["dc-hang-end-time"]);
+      } else {
+          dcHangEnd = "unknown";
+      }
+      r.robot.hang.endTime = dcHangEnd;
+
+      if (dcHangStart > dcHangEnd) {
+          dcHangDuration = dcHangStart - dcHangEnd
+      } else {
+          dcHangDuration = "Unknown (hang start time was later than end time)";
+      }
+      r.robot.hang.duration = dcHangDuration;
+
+      var orgID = 0;
+      var tournamentID = 0;
+      console.log("ran");
+      console.log(formAnswers);
+      var pushRef= firebase.database().ref("/scouting/" + org + "/" + tournament).push();
+      pushRef.set(r).then(function() {
+          $('#submit-form').removeAttr("disabled");
+          $('#submit-success').removeClass("hidden");
+      }).catch(function(e) {
+          console.error(error);
+          $('#submit-form').removeAttr("disabled");
+          $('#submit-error-msg').text(error);
+          $('#submit-error').removeClass("hidden");
+      });
+
       /*google.script.run.withSuccessHandler(function (result) {
           console.log(result);
           $('#submit-form').removeAttr("disabled");
@@ -563,3 +733,8 @@
           $('#submit-error').removeClass("hidden");
       }).submitResponses(formAnswers);*/
   }
+
+  function signOut() {
+      firebase.auth().signOut();
+  }
+
