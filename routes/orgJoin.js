@@ -73,7 +73,7 @@ function getUid(token) {
 router.post('/:orgauth/add', function (req, res, next) {
     const code = req.params.orgauth;
     const token = req.body.token;
-    const teamNum = req.body.teamNum;
+    const teamNum = req.body.teamNum.toUpperCase();
     console.log("teamnum",teamNum);
     //console.log("token",req.body.toString());
     let orgId;

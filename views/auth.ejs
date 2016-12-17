@@ -33,7 +33,11 @@
     <script>
         // FirebaseUI config.
         var uiConfig = {
+            <% if (redirect === "join") {%>
+            'signInSuccessUrl': '/join/<%- inviteCode %>',
+            <% } else { %>
             'signInSuccessUrl': '/',
+            <% } %>
             'signInOptions': [
                 // Leave the lines as is for the providers you want to offer your users.
                 firebase.auth.GoogleAuthProvider.PROVIDER_ID,
@@ -52,6 +56,10 @@
 </head>
 
 <body class="mdl-color--grey-50">
+<script>
+    var redirect = "<%- redirect%>",
+        inviteCode = "<%- inviteCode%>";
+</script>
 <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
     <%- include('nav', {includeMenu: false, includeSignOut: false}); %>
     <main class="mdl-layout__content">
