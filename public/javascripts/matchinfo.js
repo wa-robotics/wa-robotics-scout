@@ -109,25 +109,28 @@ function signOut() {
     firebase.auth().signOut();
 }
 
-
 function getScoutingInfo(matchData) {
     var data = matchData.results[0];
     console.log(data);
 
     var teams = [];
     if (data.blue3 !== "") {//there's a 3rd team on the blue alliance, so account for 3 team alliances
-        teams = [data.red1,data.red2,data.red3,data.blue1,data.blue2,data.blue3];
+        teams = [data.red1, data.red2, data.red3, data.blue1, data.blue2, data.blue3];
     } else { //qual or practice match, 2 team alliances
-        teams = [data.red1,data.red2,data.blue1,data.blue2];
+        teams = [data.red1, data.red2, data.blue1, data.blue2];
     }
 
     //fetch scouting info for each team from Firebase
 
     //do this for each team
-    firebase.database().ref('/scouting/0/0').orderByChild("team").equalTo("675C").orderByChild("timestamp").limitToLast(1).once('value').then(function (snapshot) {
-        return snapshot.val();
-        //getTeamsInMatch(sku);
-    });
+    var i = 0;
+    while (i < teams.length) {
+        firebase.database().ref('/scouting/' + org + '/' + tournament).orderByChild("team").equalTo(teams[i]).limitToLast(1).once('value').then(function (snapshot) {
+            console.log(snapshot.val());
+            //getTeamsInMatch(sku);
+        });
+        i++;
+    }
     //query API and get current rank/OPR/DPR/CCWM data for each team in the match
 
 
