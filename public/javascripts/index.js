@@ -331,7 +331,12 @@
           }
       }, function (error) {}).then(function () {
           firebase.database().ref("/organizations/"+ currentOrg +"/teams").once("value").then(function (snapshot) {
-              setDropdownMenuItems("team-select", snapshot.val(), snapshot.val(), true, "Select a team");
+              var teamList = [];
+              console.log(snapshot.val());
+              for (var team in snapshot.val()) {
+                  teamList.push(team);
+              }
+              setDropdownMenuItems("team-select", teamList, teamList, true, "Select a team");
           });
       });
   }
