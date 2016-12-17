@@ -630,14 +630,17 @@
           robot: {
               type: null,
               strafes: formAnswers.radio["robot-strafes"],
-              hang: {
-                  startTime: null,
-                  endTime: null,
-                  duration: null,
-                  result: formAnswers.radio["driver-hang-result"],
-                  partnerHelp: formAnswers.radio["hang-assistance"]
-              },
-              scoredObjects: JSON.stringify(formAnswers.scoredObjs)
+              platformStability: formAnswers.radio["platform-stability"],
+              platformHolding: formAnswers.radio["objs-fall"],
+              platformStars: formAnswers.text["driver-stars-held"],
+              platformCubes: formAnswers.text["driver-cubes-held"]
+          },
+          hang: {
+              startTime: null,
+              endTime: null,
+              duration: null,
+              result: formAnswers.radio["driver-hang-result"],
+              partnerHelp: formAnswers.radio["hang-assistance"]
           }
 
       }; //r is the processed formResponses object; in the future, this should be
@@ -679,7 +682,13 @@
       } else {
           autonPlayStart = "unknown";
       }
-      r.auton.startTime = autonPlayStart;
+
+      try {
+          r.auton.startTime = autonPlayStart;
+      } catch(e) {
+          r.auton.startTime = "unknown or no auton";
+      }
+
 
 
       if (formAnswers.markedTimes["dc-hang-start"] !== "") {
@@ -689,7 +698,11 @@
       } else {
           dcHangStart = "unknown";
       }
-      r.robot.hang.startTime = dcHangStart;
+      try {
+          r.hang.startTime = dcHangStart;
+      } catch(e) {
+          r.hang.startTime = "unknown";
+      }
 
       if (formAnswers.markedTimes["dc-hang-end"] !== "") {
           dcHangEnd = 105 - getSecondsBetween_(parseInt(formAnswers.markedTimes.driverStart),parseInt(formAnswers.markedTimes["dc-hang-end"]));
@@ -698,14 +711,19 @@
       } else {
           dcHangEnd = "unknown";
       }
-      r.robot.hang.endTime = dcHangEnd;
+
+      try {
+          r.hang.endTime = dcHangEnd;
+      } catch (e) {
+          r.hang.endTime = "unknown";
+      }
 
       if (dcHangStart > dcHangEnd) {
           dcHangDuration = dcHangStart - dcHangEnd
       } else {
           dcHangDuration = "Unknown (hang start time was later than end time)";
       }
-      r.robot.hang.duration = dcHangDuration;
+      r.hang.duration = dcHangDuration;
 
       var orgID = 0;
       var tournamentID = 0;

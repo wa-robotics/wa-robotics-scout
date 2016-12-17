@@ -1,27 +1,62 @@
-function processResults (value) {
-    var apiResponse = value.results;
+var sku = "";
+
+var cleanNames = {
+    "auton-actions":"Auton. actions",
+    "auton-pointsScored":"Auton. pts. scored",
+    "auton-startTime":"Time left in auton. when play starts",
+    "hang-duration":"Time to hang (if app.)",
+    "hang-startTime":"Seconds left when hang starts",
+    "hang-endTime":"Seconds left when hang ends",
+    "hang-result":"Hang result",
+    "hang-partnerHelp":"Partner help when hanging (if app.)",
+    "robot-platformCubes":"# cubes platform holds (on avg.)",
+    "robot-platformStars":"# stars platform holds (on avg.)",
+    "robot-platformStability":"Sturdiness of platform",
+    "robot-platformHolding":"How often objects fall off platform when robot turns",
+    "robot-strafes":"Strafes",
+    "robot-type":"Scoring method",
+    "alliance":"Alliance in scouted match",
+    "match":"Lasted scouted match",
+    "team":"The team scouted (again)",
+    "timestamp":"Ignore this value",
+    "user":"Ignore this value"
+}
+
+function processResults (team,alliance,value) {
+    console.log(team,alliance,value);
+    var apiResponse = value;
     console.log(apiResponse);
     var currentTeamInfo;
-    for (var i = 0; i < apiResponse.length; i++) {
-        output = '<div class="team-info-table-container mdl-cell--2-col-desktop mdl-cell--4-col-tablet mdl-cell--4-col-phone"><h5><strong>' + apiResponse[i].position + ' - ' + apiResponse[i].result.team
+    var propertyValue;
+    output = '<div class="team-info-table-container mdl-cell--2-col-desktop mdl-cell--4-col-tablet mdl-cell--4-col-phone"><h5><strong>' + alliance + ' - ' + team
             + ' </strong></h5><table class="team-info-table mdl-data-table mdl-js-data-table mdl-shadow--2dp full-width scouting-table-disp"><thead><tr><th class="mdl-data-table__cell--non-numeric">Property</th><th>Value</th></tr></thead><tbody>';
 
-        if (apiResponse[i].result.hasOwnProperty("data")) {
-            currentTeamInfo = apiResponse[i].result.data;
+        if (value !== null) {
+            currentTeamInfo = value;
 
-
-            for (var j = 0; j < currentTeamInfo.length; j++) {
-                output += '<tr><td class="mdl-data-table__cell--non-numeric">' + currentTeamInfo[j].propName + '</td><td class="mdl-data-table__cell--non-numeric">' + currentTeamInfo[j].value + '</td></tr>';
+            for (var prop in value) {
+                console.log(value);
+                console.log("prop",prop);
+                if (prop === "robot" || prop === "hang" || prop === "auton") {
+                    for (var nestedProp in value[prop]) {
+                        console.log("nestedProp",nestedProp);
+                        propertyValue = cleanNames[prop + "-" + nestedProp];
+                        output += '<tr><td class="mdl-data-table__cell--non-numeric">' + propertyValue + '</td><td class="mdl-data-table__cell--non-numeric">' + value[prop][nestedProp] + '</td></tr>';
+                    }
+                } else {
+                    propertyValue = cleanNames[prop];
+                    output += '<tr><td class="mdl-data-table__cell--non-numeric">' + propertyValue + '</td><td class="mdl-data-table__cell--non-numeric">' + value[prop] + '</td></tr>';
+                }
             }
 
             output += '</tbody></table></div>';
         } else {
-            output = '<div class="team-info-table-container mdl-cell--2-col-desktop mdl-cell--4-col-tablet mdl-cell--4-col-phone"><h5><strong>' + apiResponse[i].position + ' - ' + apiResponse[i].result.team
+            output = '<div class="team-info-table-container mdl-cell--2-col-desktop mdl-cell--4-col-tablet mdl-cell--4-col-phone"><h5><strong>' + alliance + ' - ' + team
                 + ' </strong></h5><i class="material-icons">info_outline</i> No data available';
         }
         $('#match-team-info-tables').append(output);
 
-    }
+
 
     $('#match-info-data-loading').removeClass("is-active").addClass("hidden");
 
@@ -108,14 +143,68 @@ function renderMatchInfo(data) {
 function signOut() {
     firebase.auth().signOut();
 }
+var rankInfo;
+
+function setRankInfo(data) {
+    console.log("data",data);
+    rankInfo = data.results[0];
+}
+
+function getRankInfo(team) {
+    $.ajax('/api/' + sku + '/rank/' + team, {
+        success:setRankInfo
+    });
+}
+
+function scoutingFormDataFetch(teams,elim) {
+    var allianceColor = "";
+    if (!elim) {
+        if (teams.length > 2) {
+            allianceColor = "blue";
+        } else {
+            allianceColor = "red";
+        }
+    } else {
+        if (teams.length > 3) {
+            allianceColor = "blue";
+        } else {
+            allianceColor = "red";
+        }
+    }
+    var team = teams.pop();
+    firebase.database().ref('/scouting/' + org + '/' + tournament).orderByChild("team").equalTo(team).limitToLast(1).once('value').then(function (snapshot) {
+
+        //getRankInfo(team);
+        if (snapshot.val() !== null) {
+            scoutInfo = snapshot.val();
+            console.log(scoutInfo);
+            console.log(scoutInfo[Object.keys(scoutInfo)[0]]);
+            processResults(team,allianceColor,scoutInfo[Object.keys(scoutInfo)[0]]);
+        } else {
+            processResults(team,allianceColor,null);
+        }
+        //processResults(scoutInfo[Obj.keys(scoutInfo)[0]]);
+/*        var toDisplay = {
+            rank: rankInfo,
+            scout: scoutInfo
+        };*/
+        //console.log(toDisplay);
+        //processResults(toDisplay)
+        if (teams.length >= 1) {
+            scoutingFormDataFetch(teams);
+        }
+    });
+}
 
 function getScoutingInfo(matchData) {
     var data = matchData.results[0];
     console.log(data);
 
     var teams = [];
+    var elim = false;
     if (data.blue3 !== "") {//there's a 3rd team on the blue alliance, so account for 3 team alliances
         teams = [data.red1, data.red2, data.red3, data.blue1, data.blue2, data.blue3];
+        elim = true;
     } else { //qual or practice match, 2 team alliances
         teams = [data.red1, data.red2, data.blue1, data.blue2];
     }
@@ -123,14 +212,7 @@ function getScoutingInfo(matchData) {
     //fetch scouting info for each team from Firebase
 
     //do this for each team
-    var i = 0;
-    while (i < teams.length) {
-        firebase.database().ref('/scouting/' + org + '/' + tournament).orderByChild("team").equalTo(teams[i]).limitToLast(1).once('value').then(function (snapshot) {
-            console.log(snapshot.val());
-            //getTeamsInMatch(sku);
-        });
-        i++;
-    }
+    scoutingFormDataFetch(teams,elim);
     //query API and get current rank/OPR/DPR/CCWM data for each team in the match
 
 
@@ -164,10 +246,6 @@ firebase.auth().onAuthStateChanged(function (user) {
 
 function initialize() {
     componentHandler.upgradeAllRegistered(); //to make sure the loading spinner appears and not just "Loading..."
-
-
-
-
 
     //show a warning if the user is looking at a match for a different team (one that they aren't on)
     /*if (userTeam !== queryTeam) {

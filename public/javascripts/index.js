@@ -12,6 +12,10 @@
 
   var reqFromAndroidApp = false;
 
+  function goToScoutingForm() {
+      window.location = "/scout/" + $('#org-select').val() + "/" + $('#tournament-select').val();
+  }
+
   function processResults(value) {
       var currentMatch;
       var alliance;
@@ -169,7 +173,7 @@
           }
           //console.log("AndroidAppUrl: " + androidAppUrl);
           //for now, the first part of this URL will be hard-coded; in the future there will need to be a method to keep track of what users are using what WARS instances
-          detailsURL = "#";
+          detailsURL = "/scout/matchinfo/" + $('#org-select').val() + "/" + $('#tournament-select').val() + "/" + value.results[i].matchnum;
           if (parseInt(value.results[i].round === 1) || parseInt(value.results[i].round) === 2) {
               matchLetter = parseInt(currentMatch.round) === 1 ? "P" : "Q";
               matchDescriptor = matchLetter + currentMatch.matchnum;

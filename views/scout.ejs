@@ -47,7 +47,7 @@
                             <label class="mdl-textfield__label" for="other-team-num">Team</label> <span class="mdl-textfield__error">Enter a valid team number</span> </div>
                     </div>
                     <div class="question">
-                        <p>When does this team's autonomous play start?
+                        <p>When does this team's autonomous play start?  Enter -1000 if no autonomous play ran.
                             <br /> <em>Press <strong>Start</strong> when the autonomous period begins, then press <strong>Mark time</strong>
             to answer this question.  Or press Enter Time at any time to type in a time.</em>
                             <br /> <i class="material-icons">info_outline</i> After you press Mark or Enter time, pressing the opposite button will clear your selection.</p>
@@ -75,7 +75,7 @@
                     <br />
                     <div class="question espion-text">
                         <p>How many points did this team score in autonomous?
-                            <br /> <em>Don't count the objects that are already scored.  Just count the number of stars/cubes this team scored in their near or far zone, then multiply by the appropriate number of points</em></p>
+                            <br /> <em>Don't count the objects that are already scored.  Give the net point difference caused by this team's actions (i.e., a cube moved from one far zone to the other would be 8 net points)</em></p>
                         <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="container-auton-pts-scored">
                             <input class="mdl-textfield__input" type="number" pattern="-?[0-9]*(\.[0-9]+)?" id="auton-pts-scored">
                             <label class="mdl-textfield__label" for="auton-pts-scored">Points scored</label> <span class="mdl-textfield__error">Enter a positive integer greater than 0</span> </div>
@@ -109,10 +109,63 @@
                                 <input type="checkbox" id="robot-type-catapult" class="mdl-checkbox__input"> <span class="mdl-checkbox__label">Catapult</span> </label>
                             <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="robot-type-dumper">
                                 <input type="checkbox" id="robot-type-dumper" class="mdl-checkbox__input"> <span class="mdl-checkbox__label">Dumper</span> </label>
+
+                            <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="robot-type-claw">
+                                <input type="checkbox" id="robot-type-claw" class="mdl-checkbox__input"> <span class="mdl-checkbox__label">Claw</span> </label>
+
                             <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="robot-type-none-of-these">
                                 <input type="checkbox" id="robot-type-none-of-these" class="mdl-checkbox__input"> <span class="mdl-checkbox__label">Didn't do any of these</span> </label>
                         </div>
                     </div>
+
+                    <div class="question">
+                        <p>How sturdy is this robot's platform?</p>
+                        <div class="espion-radio-select">
+                            <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="platform-option-too-weak">
+                                <input type="radio" id="platform-option-too-weak" class="mdl-radio__button" name="platform-stability" value="Too weak to hold anything"> <span class="mdl-radio__label">Too weak to hold anything</span> </label>
+                            <br />
+                            <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="platform-option-flimsy">
+                                <input type="radio" id="platform-option-flimsy" class="mdl-radio__button" name="platform-stability" value="Only strong enough to hold a couple stars"> <span class="mdl-radio__label">Only strong enough to hold a couple stars</span> </label>
+                            <br />
+                            <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="platform-option-decent">
+                                <input type="radio" id="platform-option-decent" class="mdl-radio__button" name="platform-stability" value="Bends slightly under pressure"> <span class="mdl-radio__label">Bends slightly under pressure</span> </label>
+                            <br />
+                            <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="platform-option-strong">
+                                <input type="radio" id="platform-option-strong" class="mdl-radio__button" name="platform-stability" value="Sturdy"> <span class="mdl-radio__label">Sturdy</span> </label>
+
+                        </div>
+                    </div>
+
+                    <div class="question">
+                        <p>Do objects tend to fall off this robot's platform when it turns?</p>
+                        <div class="espion-radio-select">
+                            <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="objs-fall-option-almost-always">
+                                <input type="radio" id="objs-fall-option-almost-always" class="mdl-radio__button" name="objs-fall" value="Almost always"> <span class="mdl-radio__label">Almost always</span> </label>
+                            <br />
+                            <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="objs-fall-sometimes">
+                                <input type="radio" id="objs-fall-sometimes" class="mdl-radio__button" name="objs-fall" value="A few times during a match"> <span class="mdl-radio__label">A few times</span> </label>
+                            <br />
+                            <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="objs-fall-never">
+                                <input type="radio" id="objs-fall-never" class="mdl-radio__button" name="objs-fall" value="Never"> <span class="mdl-radio__label">Never</span> </label>
+                        </div>
+                    </div>
+
+                    <div class="question espion-text">
+                        <p>How many stars does this robot typically hold at a time?
+                            <br /> <em>Enter 0 if it doesn't hold stars.</em></p>
+                        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="driver-stars-held">
+                            <input class="mdl-textfield__input" type="number" id="driver-stars-held">
+                            <label class="mdl-textfield__label" for="driver-stars-held">Stars held</label> <span class="mdl-textfield__error">Enter a positive integer greater than 0</span> </div>
+                    </div>
+
+                    <div class="question espion-text">
+                        <p>How many cubes does this robot typically hold at a time?
+                            <br /> <em>Enter 0 if it doesn't hold cubes.</em></p>
+                        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="container-cubes-held">
+                            <input class="mdl-textfield__input" type="number" id="driver-cubes-held">
+                            <label class="mdl-textfield__label" for="driver-cubes-held">Cubes held</label> <span class="mdl-textfield__error">Enter a positive integer greater than 0</span> </div>
+                    </div>
+
                     <div class="question">
                         <p>Does this robot strafe?</p>
                         <div class="espion-radio-select">
@@ -126,7 +179,7 @@
                                 <input type="radio" id="strafe-option-not-sure" class="mdl-radio__button" name="robot-strafes" value="not-sure"> <span class="mdl-radio__label">Not sure</span> </label>
                         </div>
                     </div>
-                    <div class="question">
+                    <!--<div class="question">
                         <p>Where does this robot score stars and cubes? (Please keep reading for detailed assistance.)
                             <br /><em>Tap where the star or cube lands.  Press Undo to remove an unintentional tap(s).  Press Reset This Question to start over.  For multiple stars or cubes shot <strong>together</strong>, tap once for each object shot.  Keep answering until you see "Got it!"
                Once you get to 5/5 entered, a "Got it!" message will appear 2.5 seconds after your last tap.  You can press Undo to remove your last tap even in the 5/5 group, and the question won't show the "Got it!" message until 2.5 seconds after your <strong>next</strong> tap.  Once "Got it!" appears,
@@ -140,9 +193,9 @@
                                 <p><span id="num-locs-entered">0</span>/5 entered</p>
                             </div>
                         </div>
-                    </div>
+                    </div>-->
                     <div class="question">
-                        <p>When does this team hang during driver control?
+                        <p>When does this team hang during driver control?  Enter -1000 if the robot didn't hang.
                             <br /> <em>If you pressed <strong>Start</strong> when the driver control period began, then press <strong>Mark time</strong>
             to answer this question.  Otherwise, press Enter Time at any time to type in a time</em>
                             <br /> <i class="material-icons">info_outline</i> After you press Mark or Enter time, pressing the opposite button will clear your selection.</p>
@@ -168,7 +221,7 @@
                     </div>
                     <br />
                     <div class="question">
-                        <p>When did this team finish hanging?
+                        <p>When did this team finish hanging?  Enter -1000 if the robot didn't hang.
                             <br /> <i class="material-icons">info_outline</i> After you press Mark or Enter time, pressing the opposite button will clear your selection.</p>
                         <div class="espion-radio-select bar-radio-select-2 bar-radio" id="robot-dc-hang-end">
                             <div class="option">
@@ -219,6 +272,9 @@
                             <br />
                             <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="hang-assist-option-not-sure">
                                 <input type="radio" id="hang-assist-option-not-sure" class="mdl-radio__button" name="hang-assistance" value="not-sure"> <span class="mdl-radio__label">Not sure</span> </label>
+                            <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="hang-assist-option-did-not-hang">
+                                <input type="radio" id="hang-assist-option-did-not-hang" class="mdl-radio__button" name="hang-assistance" value="no-hang"> <span class="mdl-radio__label">Did not hang</span> </label>
+                            <br />
                         </div>
                     </div>
                     <div class="question">
