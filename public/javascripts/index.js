@@ -12,6 +12,10 @@
 
   var reqFromAndroidApp = false;
 
+  function goToScoutingForm() {
+      window.location = "/scout/" + $('#org-select').val() + "/" + $('#tournament-select').val();
+  }
+
   function processResults(value) {
       var currentMatch;
       var alliance;
@@ -64,7 +68,7 @@
               alliance = "blue-alliance";
               alliancePosition = "blue3";
           }
-          if (currentMatch.scored) { //if this match has been scored
+          if (parseInt(currentMatch.scored)) { //if this match has been scored
               scoreAvailable = true;
               effectiveAllianceColor = "match-done";
           }
@@ -149,7 +153,7 @@
                   matchResult = "lost";
               }
               if (winningAlliance === "tie") {
-                  matchResultsString ="<strong>You"+ matchResult +"</strong>"+ scoresString +"<br />";
+                  matchResultsString ="<strong>You "+ matchResult +"</strong> "+ scoresString +"<br />";
               }
               else {
                   matchResultsString = '<span class="' + alliance + '-text"><strong>You ' + matchResult + '</strong></span> ' + scoresString +"<br />";
@@ -169,7 +173,7 @@
           }
           //console.log("AndroidAppUrl: " + androidAppUrl);
           //for now, the first part of this URL will be hard-coded; in the future there will need to be a method to keep track of what users are using what WARS instances
-          detailsURL = "#";
+          detailsURL = "/scout/matchinfo/" + $('#org-select').val() + "/" + $('#tournament-select').val() + "/" + value.results[i].matchnum;
           if (parseInt(value.results[i].round === 1) || parseInt(value.results[i].round) === 2) {
               matchLetter = parseInt(currentMatch.round) === 1 ? "P" : "Q";
               matchDescriptor = matchLetter + currentMatch.matchnum;
@@ -331,7 +335,12 @@
           }
       }, function (error) {}).then(function () {
           firebase.database().ref("/organizations/"+ currentOrg +"/teams").once("value").then(function (snapshot) {
-              setDropdownMenuItems("team-select", snapshot.val(), snapshot.val(), true, "Select a team");
+              var teamList = [];
+              console.log(snapshot.val());
+              for (var team in snapshot.val()) {
+                  teamList.push(team);
+              }
+              setDropdownMenuItems("team-select", teamList, teamList, true, "Select a team");
           });
       });
   }
@@ -359,25 +368,16 @@
       firebase.initializeApp(config);
   }
 
-  function writeUserData(userId, name, email, imageUrl) {
-      firebase.database().ref("users/"+ userId).set({
-          username: name,
-          email: email,
-          profile_picture: imageUrl,
-          organizations: []
-      });
+  function signOut() {
+      firebase.auth().signOut();
   }
+
   firebase.auth().onAuthStateChanged(function (user) {
       if (user) {
           signedInUser = user;
           $("#sign-in").hide();
-          firebase.database().ref("users/"+ user.uid).once("value").then(function (snapshot) {
-              if (!snapshot.val()) {
-                  writeUserData(signedInUser.uid, signedInUser.displayName, signedInUser.email, signedInUser.photoURL);
-              }
-              getUserOrgs();
-          });
+          getUserOrgs();
       } else {
-          window.location = "/auth"; //user is not signed, redirect to sign in page
+          window.location = "/auth"; //user is not signed in, redirect to sign in page
       }
   });
