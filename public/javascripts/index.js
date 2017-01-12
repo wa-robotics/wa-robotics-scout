@@ -15,11 +15,21 @@
   function matchToggleStar() {
       var match = $(this).parent().find("h4").text();
       var state = $(this).children("i").text();
-      var tournament = $("#tournament-select")
+      var tournament = $("#tournament-select").val();
       if (state === "star_border") {
+          console.log("star match");
+          console.log("/tournament_match_stars/" + tournament + "/" + match);
+          firebase.database().ref("/tournament_match_stars/" + tournament + "/" + match).set(true).then(function() { //this line not running
+
+          });
           $(this).children("i").text("star");
       } else if (state === "star") {
+          console.log("unstar match");
+          firebase.database().ref("/tournament_match_stars/" + tournament + "/" + match).remove().then(function() {
+
+          });
           $(this).children("i").text("star_border");
+
       }
       console.log(match,state);
   }
