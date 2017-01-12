@@ -10,31 +10,35 @@
       $("#team-select").change(getTeamMatches);
 
       $("#match-container").on("click","div > div.match-info-card div.mdl-card__title > button.star-match-btn","",matchToggleStar);
+
   });
 
   function matchToggleStar() {
       var match = $(this).parent().find("h4").text();
       var state = $(this).children("i").text();
       var tournament = $("#tournament-select").val();
+      var starLabel = $(this).children("i");
       if (state === "star_border") {
           console.log("star match");
           console.log("/tournament_match_stars/" + tournament + "/" + match);
           firebase.database().ref("/tournament_match_stars/" + tournament + "/" + match).set(true).then(function() { //this line not running
-
+              //starLabel.text("star");
           });
-          $(this).children("i").text("star");
+
       } else if (state === "star") {
           console.log("unstar match");
           firebase.database().ref("/tournament_match_stars/" + tournament + "/" + match).remove().then(function() {
-
+              //starLabel.text("star_border");
           });
-          $(this).children("i").text("star_border");
+
 
       }
       console.log(match,state);
   }
 
   var reqFromAndroidApp = false;
+  var matchesVisible = [];
+  var lastTournamentLoaded = -1;
 
   function goToScoutingForm() {
       window.location = "/scout/" + $('#org-select').val() + "/" + $('#tournament-select').val();
@@ -57,6 +61,8 @@
       var scoreAvailable = false,
           androidAppUrl, matchDetailsJsAndroid, matchLetter, matchDescriptor;
       $("#match-container").empty(); //this is actually the second emptying of this div; this time, we're removing the loading indication now that the match data has loaded and just needs to be processed
+      matchesVisible = []; //reset the list of matches being displayed
+
       console.log(value);
       console.log("queryTeam", queryTeam);
       if (value.results.length === 0) {
@@ -217,7 +223,7 @@
               matchDescriptor = matchLetter + currentMatch.instance + "-" + currentMatch.matchnum;
           }
           var starIcon = '<button class="mdl-button mdl-js-button mdl-button--icon star-match-btn"><i id="' + matchDescriptor + '" class="material-icons">star_border</i></button>';
-
+          matchesVisible.push(matchDescriptor);
 
           var matchInfo = '<div class="mdl-cell--2-col mdl-cell--3-col-tablet mdl-cell--3-col-desktop"><div class="match-info-card mdl-card mdl-shadow--2dp ' + effectiveAllianceColor + '"><div class="mdl-card__title"><h4 id="match-num">' + matchDescriptor + '</h4>' + starIcon + '</div><div class="mdl-card__supporting-text">' + matchResultsString + '<em>With</em> ' + partner + '<br /><em>Against</em> ' + opponents + '</div><div class="mdl-card__actions mdl-card--border"><a href="' + detailsURL + '"' + matchDetailsJsAndroid + ' class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">Details</a><div class="mdl-layout-spacer"></div><i class="material-icons">info_outline</i></div></div></div>';
               //console.log(matchInfo);
@@ -228,6 +234,23 @@
           scoreAvailable = false;
           scoresString = "";
       }
+
+      var starsRef = firebase.database().ref("/tournament_match_stars/" + lastTournamentLoaded);
+      starsRef.off();
+      lastTournamentLoaded = $("#tournament-select").val();
+      starsRef = firebase.database().ref("/tournament_match_stars/" + lastTournamentLoaded);
+      starsRef.off();
+      starsRef.on('child_added',function(snapshot) {
+          console.log("value listener function ran");
+          console.log(snapshot.key,snapshot.val());
+          $("button > i#" + snapshot.key).text("star");
+      });
+
+      starsRef.on('child_removed',function(snapshot) {
+          console.log("value removed listener function ran");
+          console.log(snapshot.key,snapshot.val());
+          $("button > i#" + snapshot.key).text("star_border");
+      });
   }
 
   function modalInit() {
@@ -261,6 +284,7 @@
       $("#match-container").empty() //remove the current set of matches being displayed from the page before displaying the new matches (if any); this is located here to prevent confusion of two sets of matches while the new set is loading
           .prepend('<div class="mdl-cell--12-col"> <em>Loading...</em></div>');
       getTeamMatches();
+
   });
 
   function finishGetTeamMatches(sku, queryTeam) {
