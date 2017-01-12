@@ -8,7 +8,21 @@
       });
       $("#org-select").change(loadTournamentInfo);
       $("#team-select").change(getTeamMatches);
+
+      $("#match-container").on("click","div > div.match-info-card div.mdl-card__title > button.star-match-btn","",matchToggleStar);
   });
+
+  function matchToggleStar() {
+      var match = $(this).parent().find("h4").text();
+      var state = $(this).children("i").text();
+      var tournament = $("#tournament-select")
+      if (state === "star_border") {
+          $(this).children("i").text("star");
+      } else if (state === "star") {
+          $(this).children("i").text("star_border");
+      }
+      console.log(match,state);
+  }
 
   var reqFromAndroidApp = false;
 
@@ -180,19 +194,22 @@
           }
           else { //this is a quarterfinals, semifinals, or finals match
               switch (parseInt(currentMatch.round)) {
-              case 3: //quarterfinal matches, QF1-1
-                  matchLetter = "QF";
-                  break;
-              case 4: //quarterfinal matches, QF1-1
-                  matchLetter = "SF";
-                  break;
-              case 5: //quarterfinal matches, QF1-1
-                  matchLetter = "F";
-                  break;
+                  case 3: //quarterfinal matches, QF1-1
+                      matchLetter = "QF";
+                      break;
+                  case 4: //quarterfinal matches, QF1-1
+                      matchLetter = "SF";
+                      break;
+                  case 5: //quarterfinal matches, QF1-1
+                      matchLetter = "F";
+                      break;
               }
               matchDescriptor = matchLetter + currentMatch.instance + "-" + currentMatch.matchnum;
           }
-          var matchInfo = '<div class="mdl-cell--2-col mdl-cell--3-col-tablet mdl-cell--3-col-desktop"><div class="match-info-card mdl-card mdl-shadow--2dp ' + effectiveAllianceColor + '"><div class="mdl-card__title"><h4 id="match-num">' + matchDescriptor + '</h4></div><div class="mdl-card__supporting-text">' + matchResultsString + '<em>With</em> ' + partner + '<br /><em>Against</em> ' + opponents + '</div><div class="mdl-card__actions mdl-card--border"><a href="' + detailsURL + '"' + matchDetailsJsAndroid + ' class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">Details</a><div class="mdl-layout-spacer"></div><i class="material-icons">info_outline</i></div></div></div>';
+          var starIcon = '<button class="mdl-button mdl-js-button mdl-button--icon star-match-btn"><i id="' + matchDescriptor + '" class="material-icons">star_border</i></button>';
+
+
+          var matchInfo = '<div class="mdl-cell--2-col mdl-cell--3-col-tablet mdl-cell--3-col-desktop"><div class="match-info-card mdl-card mdl-shadow--2dp ' + effectiveAllianceColor + '"><div class="mdl-card__title"><h4 id="match-num">' + matchDescriptor + '</h4>' + starIcon + '</div><div class="mdl-card__supporting-text">' + matchResultsString + '<em>With</em> ' + partner + '<br /><em>Against</em> ' + opponents + '</div><div class="mdl-card__actions mdl-card--border"><a href="' + detailsURL + '"' + matchDetailsJsAndroid + ' class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">Details</a><div class="mdl-layout-spacer"></div><i class="material-icons">info_outline</i></div></div></div>';
               //console.log(matchInfo);
           $("#match-container").append(matchInfo);
           //reset variables
