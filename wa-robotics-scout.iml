@@ -17,5 +17,6 @@
     <orderEntry type="library" name="jquery" level="application" />
     <orderEntry type="library" name="firebase" level="application" />
     <orderEntry type="library" name="firebaseui" level="application" />
+    <orderEntry type="library" name="datatables" level="application" />
   </component>
 </module>

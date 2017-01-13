@@ -82,6 +82,11 @@ router.post('/scout/:org/:tournament/:qmatchnum', function (req,res,next) {
     getScoutingInfoMatchFb(req,res, userToken);
 });*/
 
+router.get('/:sku/skills', function (req, res, next) {
+    res.set('Content-Type', 'application/json');
+    res.send({"data": [{"team":"1900X","robot":23,"prog":3,"total":26},{"team":"1900W","robot":24,"prog":32,"total":56},{"team":"1900R","robot":3,"prog":0,"total":3},{"team":"1900E","robot":34,"prog":31,"total":65}]});
+});
+
 router.get('/:sku/:team', function (req, res, next) {
     res.set('Content-Type', 'application/json');
     getTeamMatchesVexDb(res, req.params.sku, req.params.team);
