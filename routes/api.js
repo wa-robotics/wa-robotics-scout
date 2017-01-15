@@ -71,6 +71,20 @@ function getTeamRankInfo(res, sku, team) {https://api.vexdb.io/v1/get_rankings?s
     });
 }
 
+function getTeamsForTournament(res,sku) {
+    request("https://api.vexdb.io/v1/get_teams?sku=" + sku, (error, response, body) => {
+        let raw = body;
+        let parsed = JSON.parse(raw);
+        let teams = [];
+        for (let i = 0; i < parsed.result.length; i++) {
+            teams.push({team:parsed.result[i].number,r:Math.floor(Math.random()*50),p:Math.floor(Math.random()*50)});
+        }
+        let results = {"status":1,"data":teams};
+        console.log(results);
+        res.send(JSON.stringify(results));
+    });
+}
+
 /*
 router.post('/scout/:org/:tournament/:qmatchnum', function (req,res,next) {
     console.log("ran");
@@ -84,7 +98,7 @@ router.post('/scout/:org/:tournament/:qmatchnum', function (req,res,next) {
 
 router.get('/:sku/skills', function (req, res, next) {
     res.set('Content-Type', 'application/json');
-    res.send({"data": [{"team":"1900X","robot":23,"prog":3,"total":26},{"team":"1900W","robot":24,"prog":32,"total":56},{"team":"1900R","robot":3,"prog":0,"total":3},{"team":"1900E","robot":34,"prog":31,"total":65}]});
+    getTeamsForTournament(res, req.params.sku);
 });
 
 router.get('/:sku/:team', function (req, res, next) {

@@ -1,14 +1,17 @@
 $(document).ready( function () {
     $('#table_id').DataTable({
-        paging:false,
         fixedColumns: true,
         "scrollX": true,
         ajax:"/api/RE-VRC-16-1323/skills",
         "columns": [
             { "data": "team" },
-            { "data": "robot" },
-            { "data": "prog" },
-            { "data": "total"}
+            { "data": "r" },
+            { "data": "p" },
+            { "data": null,
+                "render":function(data,type,full,meta) {
+                    return data.r + data.p;
+                }
+            }
         ]
         /*"aaSorting": [[ 1, "asc" ], [2, "asc"], [3, "asc"], [4, "asc"]]*/
     });
