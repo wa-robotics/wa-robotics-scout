@@ -58,7 +58,7 @@ function getMatch(res, sku, round, instance, matchNum) {
     });
 }
 
-function getTeamRankInfo(res, sku, team) {https://api.vexdb.io/v1/get_rankings?sku=RE-VRC-16-5088&team=1961D
+function getTeamRankInfo(res, sku, team) { //https://api.vexdb.io/v1/get_rankings?sku=RE-VRC-16-5088&team=1961D
     request("https://api.vexdb.io/v1/get_rankings?sku=" + sku + "&team=" + team, (error, response, body) => {
         var raw = body;
         var parsed = JSON.parse(raw);
@@ -71,18 +71,23 @@ function getTeamRankInfo(res, sku, team) {https://api.vexdb.io/v1/get_rankings?s
     });
 }
 
-function getTeamsForTournament(res,sku) {
+function getTeamsSkillsScores(res,sku) {
     request("https://api.vexdb.io/v1/get_teams?sku=" + sku, (error, response, body) => {
         let raw = body;
         let parsed = JSON.parse(raw);
-        let teams = [];
-        for (let i = 0; i < parsed.result.length; i++) {
-            teams.push({team:parsed.result[i].number,r:Math.floor(Math.random()*50),p:Math.floor(Math.random()*50)});
+        let teams = parsed.result.map(e => e.number);
+        let results = [];
+
+        let score;
+        for (let i = 0; i < teams.length; i++) {
+            results.push({team:teams[i]});
+            //scores = request("https://api.vexdb.io/v1/get_")
         }
-        let results = {"status":1,"data":teams};
+
         console.log(results);
-        res.send(JSON.stringify(results));
-    });
+
+        res.send(JSON.stringify({data:results}));
+    })
 }
 
 /*
@@ -98,7 +103,7 @@ router.post('/scout/:org/:tournament/:qmatchnum', function (req,res,next) {
 
 router.get('/:sku/skills', function (req, res, next) {
     res.set('Content-Type', 'application/json');
-    getTeamsForTournament(res, req.params.sku);
+    getTeamsSkillsScores(res, req.params.sku);
 });
 
 router.get('/:sku/:team', function (req, res, next) {
