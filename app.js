@@ -35,6 +35,12 @@ app.use("/teams",function (req, res, next) {
         showMenu: true
     });
 });
+app.use("/select", function (req,res,next) {
+    res.render("selectTournament", {
+        title: "WARS: Select tournament",
+        showMenu: true
+    });
+});
 app.use("/search", search);
 app.use("/api", api);
 app.use("/scout", scout);
