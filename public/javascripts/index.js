@@ -12,7 +12,7 @@
       $("#match-container").on("click","div > div.match-info-card div.mdl-card__title > button.star-match-btn","",matchToggleStar);
 
   });
-
+  var page = "index"; //so getUserDefaults in global.js can know to call getTeamMatches when it's done
   function matchToggleStar() {
       var match = $(this).parent().find("h4").text();
       var state = $(this).children("i").text();
@@ -288,11 +288,7 @@
   });
 
   function finishGetTeamMatches(sku, queryTeam) {
-      var url = "/api/" + sku + "/" + queryTeam;
-      console.log(url);
-      jQuery.ajax(url, {
-          success: processResults
-      });
+
       //modalInit();
       //console.log("queryTeam is " + queryTeam);
       //console.log("Show default team selection modal? " + promptDefaultTeam);
@@ -311,11 +307,14 @@
 
   function getTeamMatches() {
       console.log("called2");
-      queryTeam = $("#team-select").val();
-      var sku;
-      console.log("tournament sku id", $("#tournament-select").val());
-      firebase.database().ref("/tournaments/"+ $("#tournament-select").val() +"/sku").once("value").then(function (snapshot) {
-          finishGetTeamMatches(snapshot.val(), queryTeam);
+      console.log(userDefaults);
+      queryTeam = userDefaults.team;
+      var sku = userDefaults.tournamentSku;
+      console.log("tournament sku id", userDefaults.tournamentSku);
+      var url = "/api/" + userDefaults.tournamentSku + "/" + userDefaults.team;
+      console.log(url);
+      jQuery.ajax(url, {
+          success: processResults
       });
       console.log("sku", sku);
       //updateTeamDropdown();
@@ -427,7 +426,8 @@
       if (user) {
           signedInUser = user;
           $("#sign-in").hide();
-          getUserOrgs();
+          //getUserOrgs();
+          getUserDefaults();
       } else {
           window.location = "/auth"; //user is not signed in, redirect to sign in page
       }
