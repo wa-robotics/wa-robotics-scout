@@ -23,6 +23,8 @@ function getUserDefaults() {
         $("#viewing-info").removeClass("hidden");
         if (page === "index") {
             getTeamMatches();
+        } else if (page === "teamList") {
+            renderTable();
         }
     });
 }

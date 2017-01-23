@@ -21,11 +21,16 @@
         <%- include('nav', {includeMenu: true, includeSignOut: true}); %>
             <main class="mdl-layout__content">
                 <div class="page-content">
+                    <div class="mdl-grid hidden" id="viewing-info">
+                        <div class="mdl-cell--12-col"></div>
+                    </div>
                     <div class="mdl-grid">
                         <h3>Team list</h3>
                     </div>
                     <div class="mdl-grid">
-                        <div id="table-container">
+                        <div id="team-list-data-loading" class="mdl-spinner mdl-spinner--single-color mdl-js-spinner is-active"></div>
+                        <div id="table-container" class="hidden">
+                            <p id="viewing-info"></p>
                             <table id="table_id" class="display" cellspacing="0" width="100%">
                                 <thead>
                                 <tr>
@@ -52,6 +57,7 @@
     <script type="text/javascript" src="https://cdn.datatables.net/v/dt/jqc-1.12.4/dt-1.10.13/fc-3.2.2/fh-3.1.2/sc-1.4.2/datatables.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/3.5.0/firebase.js"></script>
     <script src="javascripts/teamList.js"></script>
+    <script src="javascripts/global.js"></script>
     <%- include("analytics"); %>
 </body>
 
