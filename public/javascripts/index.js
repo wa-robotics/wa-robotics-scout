@@ -253,58 +253,6 @@
       });
   }
 
-  function modalInit() {
-      /*
-      (function () {
-          "use strict";
-          var dialogButton = document.querySelector(".dialog-button");
-          var dialog = document.querySelector("#default-team-select-dialog");
-          if (!dialog.showModal) {
-              dialogPolyfill.registerDialog(dialog);
-          }
-          dialogButton.addEventListener("click", function () {
-              dialog.showModal();
-          });
-          /*dialog.querySelector('button:not([disabled])')
-          .addEventListener('click', function() {
-            dialog.close();
-          });*/
-     /* }());
-    */
-  }
-//TODO: update this to work with new code architecture
-  /*function updateTeamDropdown() {
-      var selector = '[value="' + queryTeam + '"]';
-      $(selector).attr("selected", "selected");
-  }*/
-
-
-  $("#team-select").change(function () {
-      console.log("called");
-      $("#match-container").empty() //remove the current set of matches being displayed from the page before displaying the new matches (if any); this is located here to prevent confusion of two sets of matches while the new set is loading
-          .prepend('<div class="mdl-cell--12-col"> <em>Loading...</em></div>');
-      getTeamMatches();
-
-  });
-
-  function finishGetTeamMatches(sku, queryTeam) {
-
-      //modalInit();
-      //console.log("queryTeam is " + queryTeam);
-      //console.log("Show default team selection modal? " + promptDefaultTeam);
-      //console.log(queryTeam);
-      //console.log(userTeam);
-      //console.log("promptDefaultTeam is " + promptDefaultTeam + " of type " + typeof promptDefaultTeam);
-      /*if (promptDefaultTeam === "true") { //promptDefaultTeam becomes a string when it is inserted into a script tag (in index.html) with a printing scriptlet
-        var dialog = document.querySelector('#default-team-select-dialog');
-        console.log("promptDefaultTeam is " + promptDefaultTeam);
-        dialog.showModal();
-      } else if(queryTeam) {
-        getTeamMatches(queryTeam);
-      }*/
-  }
-  var queryTeam = "";
-
   function getTeamMatches() {
       console.log("called2");
       console.log(userDefaults);
@@ -313,19 +261,10 @@
       console.log("tournament sku id", userDefaults.tournamentSku);
       var url = "/api/" + userDefaults.tournamentSku + "/" + userDefaults.team;
       console.log(url);
-      jQuery.ajax(url, {
+      $.ajax(url, {
           success: processResults
       });
       console.log("sku", sku);
-      //updateTeamDropdown();
-      /*if (userTeam !== queryTeam) {
-          if ($('#show-diff-team').hasClass('hidden')) { //only remove the hidden class if it's present
-              $('#show-diff-team').removeClass('hidden');
-          }
-      }
-      else if (!$('#show-diff-team').hasClass('hidden')) { //only add the hidden class if it's absent
-          $('#show-diff-team').addClass('hidden');
-      }*/
   }
   var config = {
       apiKey: "AIzaSyAIvK9HrI4P7MJlzjOHmcWeja2BPEInuTo",
@@ -335,84 +274,7 @@
       messagingSenderId: "490870467180"
   };
   firebaseInit();
-  var globalInfo = {};
 
-  function setDropdownMenuItems(menuId, valueList, displayValueList, emptyFirst, defaultString) {
-      menuId = "#" + menuId;
-      if (emptyFirst) {
-          $(menuId).empty().append("<option class='hidden' value=''>" + defaultString + "</option>");
-      }
-      for (var i = 0; i < displayValueList.length; i++) {
-          $(menuId).append("<option value='" + valueList[i] + "'>" + displayValueList[i] + "</option>");
-      }
-      $(menuId).removeAttr("disabled");
-  }
-
-  function getOrgInfo(org, userId) {
-      firebase.database().ref("/organizations/"+ org).once("value").then(function (snapshot) {
-          globalInfo.orgInfo = snapshot.val();
-          setDropdownMenuItems("org-select", [globalInfo.userorgs[0]], [globalInfo.orgInfo.name], true, "Select an organization");
-          $("#org-select").removeAttr("disabled");
-          $("#org-short-name").text(globalInfo.orgInfo.short_name);
-          setDropdownMenuItems("team-select", globalInfo.orgInfo.teams, globalInfo.orgInfo.teams, true, "Select a team");
-          $("#team-select").removeAttr("disabled");
-      });
-  }
-
-  function resetDropdowns() {
-      $("#org-select").empty().append('<option class="hidden" value="">Select an organization</option>').attr("disabled","disabled");
-      $("#tournament-select").empty().append('<option class="hidden" value="">Select a tournament</option>').attr("disabled","disabled");
-      $("#team-select").empty().append('<option class="hidden" value="">Select a team</option>').attr("disabled","disabled");
-  }
-
-  function getTournamentName(tournament) {
-      var result;
-      console.log("tournament", tournament);
-      firebase.database().ref("/tournaments_names_orgs/"+ tournament).once("value").then(function (snapshot) {
-          result = snapshot.val();
-          setDropdownMenuItems("tournament-select", [tournament], [result], false, "");
-      });
-  }
-
-  function loadTournamentInfo() {
-      console.log("called");
-      var currentOrg = $("#org-select").val();
-      $("#tournament-select").empty().append('<option class="hidden" value="">Select a tournament</option>').attr("disabled","disabled");
-      $("#team-select").empty().append('<option class="hidden" value="">Select a team</option>').attr("disabled","disabled");
-      firebase.database().ref("/organizations/"+ currentOrg +"/tournaments").once("value").then(function (snapshot) {
-          for (var i = 0; i < snapshot.val().length; i++) {
-              getTournamentName(snapshot.val()[i]);
-          }
-      }, function (error) {}).then(function () {
-          firebase.database().ref("/organizations/"+ currentOrg +"/teams").once("value").then(function (snapshot) {
-              var teamList = [];
-              console.log(snapshot.val());
-              for (var team in snapshot.val()) {
-                  teamList.push(team);
-              }
-              setDropdownMenuItems("team-select", teamList, teamList, true, "Select a team");
-          });
-      });
-  }
-
-  function fillOrgSelect(orgs) {
-      var i = 0;
-      resetDropdowns();
-      while (i < orgs.length) {
-          firebase.database().ref("/organizations/"+ orgs[i]).once("value").then(function (snapshot) {
-              setDropdownMenuItems("org-select", [snapshot.key], [snapshot.val().name], false, "");
-          }).catch(function (error) {});
-          i++;
-      }
-  }
-
-  function getUserOrgs() {
-      var userId = firebase.auth().currentUser.uid;
-      firebase.database().ref("/users/"+ userId).once("value").then(function (snapshot) {
-          globalInfo.userorgs = snapshot.val().userorgs;
-          fillOrgSelect(globalInfo.userorgs);
-      });
-  }
 
   function firebaseInit() {
       firebase.initializeApp(config);
