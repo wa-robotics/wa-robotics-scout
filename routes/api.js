@@ -83,8 +83,8 @@ function getTeamsSkillsScores(res,sku) {
 
         let score;
         for (let i = 0; i < teams.length; i++) {
-            results.push({team:teams[i]});
-            //scores = request("https://api.vexdb.io/v1/get_")
+            results.push({team:teams[i]});/*,star: '<button class="mdl-button mdl-js-button mdl-button--icon star-team-btn"><i id="' + teams[i] + '" class="material-icons">star_border</i></button>'});
+           */ //scores = request("https://api.vexdb.io/v1/get_")
         }
 
         console.log(results);

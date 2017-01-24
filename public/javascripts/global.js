@@ -6,7 +6,7 @@ function getUserDefaults() {
         /*organization = userDefaults.org;
         tournament = userDefaults.tournament;
         team = userDefaults.team;*/
-        if (userDefaults === null || new Date(userDefaults.expiry).getDate() < new Date().getDate()) { //defaults have expired
+        if (userDefaults === null || new Date(userDefaults.expires).getDate() < new Date().getDate()) { //defaults have expired
             window.location = "/select";
         }
         console.log(userDefaults);

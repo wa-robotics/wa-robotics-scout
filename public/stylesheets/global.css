@@ -162,3 +162,7 @@ table.team-info-table {
 #viewing-info > div {
     font-weight: bold;
 }
+
+.align-right {
+    text-align: right;
+}
