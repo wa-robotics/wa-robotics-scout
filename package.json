@@ -18,6 +18,7 @@
     "firebase-queue": "^1.6.1",
     "morgan": "~1.7.0",
     "request": "^2.78.0",
+    "request-promise": "^4.1.1",
     "serve-favicon": "~2.3.0"
   },
   "devDependencies": {

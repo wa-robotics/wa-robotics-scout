@@ -6,8 +6,6 @@
               Android.openFeedbackForm();
           }
       });
-      $("#org-select").change(loadTournamentInfo);
-      $("#team-select").change(getTeamMatches);
 
       $("#match-container").on("click","div > div.match-info-card div.mdl-card__title > button.star-match-btn","",matchToggleStar);
 
@@ -20,14 +18,14 @@
       var starLabel = $(this).children("i");
       if (state === "star_border") {
           console.log("star match");
-          console.log("/tournament_match_stars/" + tournament + "/" + match);
-          firebase.database().ref("/tournament_match_stars/" + tournament + "/" + match).set(true).then(function() { //this line not running
+          console.log("/tournament_match_stars/" + userDefaults.tournament + "/" + match);
+          firebase.database().ref("/tournament_match_stars/" + userDefaults.tournament + "/" + match).set(true).then(function() { //this line not running
               //starLabel.text("star");
           });
 
       } else if (state === "star") {
           console.log("unstar match");
-          firebase.database().ref("/tournament_match_stars/" + tournament + "/" + match).remove().then(function() {
+          firebase.database().ref("/tournament_match_stars/" + userDefaults.tournament + "/" + match).remove().then(function() {
               //starLabel.text("star_border");
           });
 
@@ -235,10 +233,8 @@
           scoresString = "";
       }
 
-      var starsRef = firebase.database().ref("/tournament_match_stars/" + lastTournamentLoaded);
-      starsRef.off();
-      lastTournamentLoaded = $("#tournament-select").val();
-      starsRef = firebase.database().ref("/tournament_match_stars/" + lastTournamentLoaded);
+
+      starsRef = firebase.database().ref("/tournament_match_stars/" + userDefaults.tournament);
       starsRef.off();
       starsRef.on('child_added',function(snapshot) {
           console.log("value listener function ran");

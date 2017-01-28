@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var request = require('request');
+var rp = require("request-promise");
 var admin = require("firebase-admin");
 var serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_KEY);
 const FB_APP_NAME = "USER_DEFAULTS_SAVE";
@@ -74,22 +75,86 @@ function getTeamRankInfo(res, sku, team) { //https://api.vexdb.io/v1/get_ranking
     });
 }
 
-function getTeamsSkillsScores(res,sku) {
-    request("https://api.vexdb.io/v1/get_teams?sku=" + sku, (error, response, body) => {
-        let raw = body;
-        let parsed = JSON.parse(raw);
-        let teams = parsed.result.map(e => e.number);
-        let results = [];
+function processSkillsScores(scores) {
+    let maxTotalScore = -1;
+    let maxRobotSkillsScore = -1;
+    let maxProgSkillsScore = -1;
+    let elem;
 
-        let score;
-        for (let i = 0; i < teams.length; i++) {
-            results.push({team:teams[i]});/*,star: '<button class="mdl-button mdl-js-button mdl-button--icon star-team-btn"><i id="' + teams[i] + '" class="material-icons">star_border</i></button>'});
-           */ //scores = request("https://api.vexdb.io/v1/get_")
+    let results = [];
+    //process scores collected to produce highest Robot Skills, Programming Skills, and Combined Skills scores
+    for (let team = 0; team < scores.length; team++) {
+        console.log(scores[team]);
+        try {
+            if (scores[team].sku === "WARS_DID_NOT_ATTEMPT") { //this team doesn't have any skills scores
+                results.push({team:scores[team].team,maxRobot:"DNA",maxProg:"DNA",maxTotal:"DNA"});
+                continue;
+            }
+        } catch (e) {
+
         }
 
-        console.log(results);
+        for (let scoreNum = 0; scoreNum < scores[team].length; scoreNum++) {
+            //score types (as listed on VexDB):
+            //0 - Robot Skills
+            //1 - Programming Skills
+            //2 - Combined Skills (for events in Starstruck or later)
+            elem = scores[team][scoreNum];
+            if (elem.type === 0 && elem.score > maxRobotSkillsScore) { //robot skills (NOT combined) score
+                    maxRobotSkillsScore = elem.score;
+            } else if (elem.type === 1 && elem.score > maxProgSkillsScore) {
+                maxProgSkillsScore = elem.score;
+            } else if (elem.type === 2 && elem.score > maxTotalScore) {
+                maxTotalScore = elem.score;
+            }
+        }
 
-        res.send(JSON.stringify({data:results}));
+        results.push({team:scores[team][0].team,maxRobot:maxRobotSkillsScore,maxProg:maxProgSkillsScore,maxTotal:maxTotalScore});
+        maxProgSkillsScore = 0;
+        maxRobotSkillsScore = 0;
+        maxTotalScore = 0;
+    }
+
+    let resultsObj = {};
+    for (let i = 0; i < results.length; i++) {
+        resultsObj[results[i].team] = {
+            maxRobot: results[i].maxRobot,
+            maxProg: results[i].maxProg,
+            maxTotal: results[i].maxTotal
+        };
+    }
+    return resultsObj;
+}
+
+function getTeamsSkillsScores(res,sku) {
+    rp("https://api.vexdb.io/v1/get_teams?sku=" + sku).then(function(response) {
+        var parsed = JSON.parse(response);
+        //console.log("cake",cake);
+        let teams = parsed.result.map(e => e.number);
+        console.log("teams",teams);
+        let result = [];
+        return teams.reduce((seq, n) => { //this can make sense, see http://stackoverflow.com/documentation/javascript/231/promises/5917/reduce-an-array-to-chained-promises#t=201701280043030488714
+            return seq.then(() => {
+                console.log(n);
+                return new Promise(res => {
+                    rp("https://api.vexdb.io/v1/get_skills?season=current&team=" + n).then((respo) => {
+                        let p = JSON.parse(respo);
+                        if (p.result.length === 0) {
+                            p.result = { sku:"WARS_DID_NOT_ATTEMPT",team: n };
+                        }
+                        console.log(respo);
+                        result.push(p.result);
+                    }).then(() => setTimeout(res,125));
+                });
+            });
+        }, Promise.resolve()).then(
+            () => {
+                res.set("Content-Type","application/json");
+                let processedResults = processSkillsScores(result);
+                res.send(JSON.stringify(processedResults));
+            }, (e)=> console.log(e)
+        );
+        //return vexDbSkillsScores(teams,sku);
     });
 }
 
@@ -143,6 +208,54 @@ router.post('/scout/:org/:tournament/:qmatchnum', function (req,res,next) {
     //console.log(userToken);
     getScoutingInfoMatchFb(req,res, userToken);
 });*/
+
+
+
+router.post('/skills/pretournament/refresh', function (req, res, next) {
+    const code = req.params.orgauth;
+    const token = req.body.token;
+    const tournament = req.body.tournament;
+    //console.log("token",req.body.toString());
+    let orgId;
+    let uid;
+    const db = userDefaultsFbApp.database();
+
+    //1. Verify that the user can access the tournament for which new data has been requested
+    //2. Don't refresh if the new data is less than 24 hours old
+    //3. Make a request to VexDB for each team (waiting 125ms between requests), and then save the total robot skills score to Firebase.
+
+    //Step 1 - get tournament's organization
+    db.ref("/tournaments/" + tournament + "/organization").once("value").then(function(snapshot) {
+        orgId = snapshot.val();
+        console.log("oid",orgId);
+        if (orgId !== null) { //Success - we got something back
+            return admin.auth().verifyIdToken(token);
+        } else {
+            Promise.reject("invalid org id returned"); //stop and throw an error; the organization supplied probably doesn't exist
+        }
+    }).then(function(decodedToken) {
+        uid = decodedToken.uid;
+        return db.ref("/organizations/" + orgId + "/users/" + uid).once("value");
+    }).then(function(snapshot) {
+        console.log(snapshot.val());
+        let authResult = snapshot.val();
+        if (authResult !== null) {
+            return db.ref("/tournaments/" + tournament + "/sku").once("value");
+        } else {
+            Promise.reject("The user is not authorized to perform this action: ERR_USER_NOT_AUTHORIZED");
+        }
+        return true;
+    }).then(function(snapshot) {
+        let tournamentSku = snapshot.val();
+        return getTeamsSkillsScores(res, tournamentSku);
+    }).then(function() {
+        //res.send(tournamentSku);
+    }).catch(function (error) {
+        console.error("Server error: " + error.message);
+        res.status(500);
+        res.send({"result":"error","status":0,"message":error.message});
+    });
+});
 
 router.post('/select/save', function (req, res, next) {
     const code = req.params.orgauth;
