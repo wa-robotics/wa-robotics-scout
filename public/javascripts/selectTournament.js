@@ -138,7 +138,9 @@ function loadTournamentInfo() {
         for (var i = 0; i < snapshot.val().length; i++) {
             getTournamentName(snapshot.val()[i]);
         }
-    }, function (error) {}).then(function () {
+    }, function (error) {
+        console.error(error.message);
+    }).then(function () {
         firebase.database().ref("/organizations/"+ currentOrg +"/teams").once("value").then(function (snapshot) {
             var teamList = [];
             console.log(snapshot.val());
@@ -150,13 +152,19 @@ function loadTournamentInfo() {
     });
 }
 
+function logError(error){
+    console.error(error);
+}
+
+function dropdownFillOrgSelect(snapshot) {
+    setDropdownMenuItems("org-select", [snapshot.key], [snapshot.val().name], false, "");
+}
+
 function fillOrgSelect(orgs) {
     var i = 0;
     resetDropdowns();
     while (i < orgs.length) {
-        firebase.database().ref("/organizations/"+ orgs[i]).once("value").then(function (snapshot) {
-            setDropdownMenuItems("org-select", [snapshot.key], [snapshot.val().name], false, "");
-        }).catch(function (error) {});
+        firebase.database().ref("/organizations/"+ orgs[i]).once("value").then(dropdownFillOrgSelect).catch(logError);
         i++;
     }
 }
