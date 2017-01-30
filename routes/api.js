@@ -329,7 +329,7 @@ router.post('/skills/pretournament/refresh', function (req, res, next) {
             console.log(now.getDate());
             console.log(nextAllowableRefresh.getDate());
             console.log(now.getDate() > nextAllowableRefresh.getDate())
-            if (now.getDate() > nextAllowableRefresh.getDate()) { //OK to refresh
+            if (now > nextAllowableRefresh) { //OK to refresh
                 console.log("inside OK to refresh");
                 return db.ref("/tournaments/" + tournament + "/sku").once("value");
             } else {
