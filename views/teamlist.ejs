@@ -28,12 +28,16 @@
                         <h3>Team list</h3>
                     </div>
                     <div class="mdl-grid">
+                        <p>Skills data is per team for any tournament they have competed at and will refresh approximately once per 24 hours.</p>
+                        <p id="skills-last-update" class="hidden">The data was last updated on </p>
+                    </div>
+                    <div class="mdl-grid">
                         <div id="team-list-data-loading" class="mdl-spinner mdl-spinner--single-color mdl-js-spinner is-active"></div>
-                        <button id="refresh-skills-data" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored">Refresh skills scores</button>
-                        <div id="table-container" class="hidden">
-                            <p id="viewing-info"></p>
+                    </div>
+                    <div class="mdl-grid">
+                        <div id="table-container">
                             <table id="table_id" class="display" cellspacing="0" width="100%">
-                                <thead>
+           <!--                     <thead>
                                 <tr>
                                     <th>Team</th>
                                     <th>Star</th>
@@ -44,12 +48,12 @@
                                     <th>Team</th>
                                     <th>Star</th>
                                 </tr>
-                                </tfoot>
+                                </tfoot>-->
                             </table>
                         </div>
                     </div>
                 </div>
-                <%- include("footer")%>    </div>
+                <%- include("footer")%>
             </main>
 
 

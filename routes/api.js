@@ -14,6 +14,22 @@ let userDefaultsFbApp = admin.initializeApp({
     }
 },FB_APP_NAME);
 
+let skillsDataSaveFbApp = admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    databaseURL: "https://wa-robotics-scout.firebaseio.com",
+    databaseAuthVariableOverride: {
+        uid: "pretourney-skills-save-manager"
+    }
+},"PRETOURNEY_SKILLS_SAVE");
+
+let skillsDataFetchFbApp = admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    databaseURL: "https://wa-robotics-scout.firebaseio.com",
+    databaseAuthVariableOverride: {
+        uid: "pretourney-skills-fetch"
+    }
+},"PRETOURNEY_SKILLS_FETCH");
+
 function getTeamMatchesVexDb(res, sku, teamNum) {
     teamNum = teamNum.toString();
     if (!/^[0-9]{1,5}[a-zA-Z]?$/.test(teamNum)) {
@@ -87,7 +103,7 @@ function processSkillsScores(scores) {
         console.log(scores[team]);
         try {
             if (scores[team].sku === "WARS_DID_NOT_ATTEMPT") { //this team doesn't have any skills scores
-                results.push({team:scores[team].team,maxRobot:"DNA",maxProg:"DNA",maxTotal:"DNA"});
+                results.push({team:scores[team].team,maxRobot:0,maxProg:0,maxTotal:0});
                 continue;
             }
         } catch (e) {
@@ -118,15 +134,17 @@ function processSkillsScores(scores) {
     let resultsObj = {};
     for (let i = 0; i < results.length; i++) {
         resultsObj[results[i].team] = {
+            team: results[i].team,
             maxRobot: results[i].maxRobot,
             maxProg: results[i].maxProg,
             maxTotal: results[i].maxTotal
         };
     }
+    resultsObj.dateCollected = new Date().toString();
     return resultsObj;
 }
 
-function getTeamsSkillsScores(res,sku) {
+function getTeamsSkillsScores(res,sku,tournamentID) {
     rp("https://api.vexdb.io/v1/get_teams?sku=" + sku).then(function(response) {
         var parsed = JSON.parse(response);
         //console.log("cake",cake);
@@ -144,14 +162,18 @@ function getTeamsSkillsScores(res,sku) {
                         }
                         console.log(respo);
                         result.push(p.result);
-                    }).then(() => setTimeout(res,125));
+                    }).then(() => setTimeout(res,250));
                 });
             });
         }, Promise.resolve()).then(
             () => {
                 res.set("Content-Type","application/json");
                 let processedResults = processSkillsScores(result);
-                res.send(JSON.stringify(processedResults));
+                const db = skillsDataSaveFbApp.database();
+                db.ref("/pretourneySkillsData/" + tournamentID).set(processedResults)
+                    .then(() => { return db.ref("/tournaments/" + tournamentID + "/pretourneySkillsLastUpdated").set(processedResults.dateCollected); })
+                    .then(() => res.send({status:1,message:"Operation completed successfully"}))
+                    .catch((e)=> console.log(e));
             }, (e)=> console.log(e)
         );
         //return vexDbSkillsScores(teams,sku);
@@ -210,6 +232,55 @@ router.post('/scout/:org/:tournament/:qmatchnum', function (req,res,next) {
 });*/
 
 
+//fetches all pretournament scouting data to be shown on team list page
+router.post('/pretournament/fetch', function (req, res, next) {
+    const token = req.body.token;
+    const tournament = req.body.tournament;
+    //console.log("token",req.body.toString());
+    let orgId;
+    let uid;
+    const db = skillsDataFetchFbApp.database();
+
+    //1. Verify that the user can access the tournament for which new data has been requested
+    //2.
+
+    //Step 1 - get tournament's organization
+    db.ref("/tournaments/" + tournament + "/organization").once("value").then(function(snapshot) {
+        orgId = snapshot.val();
+        console.log("oid",orgId);
+        if (orgId !== null) { //Success - we got something back
+            return admin.auth().verifyIdToken(token);
+        } else {
+            Promise.reject("invalid org id returned"); //stop and throw an error; the organization supplied probably doesn't exist
+        }
+    }).then(function(decodedToken) {
+        uid = decodedToken.uid;
+        return db.ref("/organizations/" + orgId + "/users/" + uid).once("value");
+    }).then(function(snapshot) { //verify that this user is listed as a member on the organization that the tournament belongs to
+        console.log(snapshot.val());
+        let authResult = snapshot.val();
+        if (authResult !== null) {
+            return db.ref("/pretourneySkillsData/" + tournament).once("value");
+        } else {
+            Promise.reject("The user is not authorized to perform this action: ERR_USER_NOT_AUTHORIZED");
+        }
+        return true;
+    }).then(function(snapshot) {
+        let skillsData = snapshot.val();
+        let result = [];
+        for (let team in skillsData) {
+            if (skillsData.hasOwnProperty(team)) {
+                result.push([skillsData[team].team,null,skillsData[team].maxTotal,skillsData[team].maxRobot,skillsData[team].maxProg]);
+            }
+        }
+
+        res.send(result);
+    }).catch(function (error) {
+        console.error("Server error: " + error.message);
+        res.status(500);
+        res.send({"result":"error","status":0,"message":error.message});
+    });
+});
 
 router.post('/skills/pretournament/refresh', function (req, res, next) {
     const code = req.params.orgauth;
@@ -218,7 +289,7 @@ router.post('/skills/pretournament/refresh', function (req, res, next) {
     //console.log("token",req.body.toString());
     let orgId;
     let uid;
-    const db = userDefaultsFbApp.database();
+    const db = skillsDataSaveFbApp.database();
 
     //1. Verify that the user can access the tournament for which new data has been requested
     //2. Don't refresh if the new data is less than 24 hours old
@@ -236,20 +307,49 @@ router.post('/skills/pretournament/refresh', function (req, res, next) {
     }).then(function(decodedToken) {
         uid = decodedToken.uid;
         return db.ref("/organizations/" + orgId + "/users/" + uid).once("value");
-    }).then(function(snapshot) {
+    }).then(function(snapshot) { //verify that this user is listed as a member on the organization that the tournament belongs to
         console.log(snapshot.val());
         let authResult = snapshot.val();
         if (authResult !== null) {
-            return db.ref("/tournaments/" + tournament + "/sku").once("value");
+            return db.ref("/pretourneySkillsData/" + tournament + "/dateCollected").once("value");
         } else {
             Promise.reject("The user is not authorized to perform this action: ERR_USER_NOT_AUTHORIZED");
         }
-        return true;
+        return false;
+    }).then((snapshot) => {
+        console.log("datecollected",snapshot.val());
+        let lastCollectedString = snapshot.val();
+        console.log(lastCollectedString);
+        if (snapshot.val() !== null) {
+            let lastCollected = new Date(lastCollectedString);
+            console.log(lastCollected.toString());
+            let nextAllowableRefresh = new Date();
+            nextAllowableRefresh.setDate(lastCollected.getDate() + 1);
+            let now = new Date();
+            console.log(now.getDate());
+            console.log(nextAllowableRefresh.getDate());
+            console.log(now.getDate() > nextAllowableRefresh.getDate())
+            if (now.getDate() > nextAllowableRefresh.getDate()) { //OK to refresh
+                console.log("inside OK to refresh");
+                return db.ref("/tournaments/" + tournament + "/sku").once("value");
+            } else {
+                //Promise.reject("A refresh is not authorized at this time");
+                console.log("not OK to refresh");
+                return false;
+                //return db.ref("/tournaments/" + tournament + "/sku").once("value");
+            }
+        } else { //no data exists yet, so continue
+            return db.ref("/tournaments/" + tournament + "/sku").once("value");
+        }
+
     }).then(function(snapshot) {
-        let tournamentSku = snapshot.val();
-        return getTeamsSkillsScores(res, tournamentSku);
-    }).then(function() {
-        //res.send(tournamentSku);
+        console.log(snapshot);
+        if (snapshot) {
+            let tournamentSku = snapshot.val();
+            return getTeamsSkillsScores(res, tournamentSku, tournament);
+        } else {
+            res.send({status:0,message:"A refresh is not authorized at this time"});
+        }
     }).catch(function (error) {
         console.error("Server error: " + error.message);
         res.status(500);

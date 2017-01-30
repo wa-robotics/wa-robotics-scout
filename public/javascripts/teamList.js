@@ -1,31 +1,62 @@
 var page = "teamList";
 
-function renderTable () {
+function finishRenderTable(response) {
+    console.log(response);
+
+
     $('#table_id').DataTable({
-        fixedColumns: true,
-        "scrollX": true,
-        paging:false,
-        ajax:"/api/" + userDefaults.tournamentSku + "/skills",
-        "columns": [
+         fixedColumns: true,
+         "scrollX": true,
+         paging:false,
+         data:response,
+         "columns": [
+             {"title": "Team number",
+              "class":"align-right"},
+             {"title": "Star",
+                 "render":function(data,type,row) {
+                 return '<button class="mdl-button mdl-js-button mdl-button--icon star-team-btn"><i id="' + row[0] + '" class="material-icons">star_border</i></button>';
+             }},
+             {"title": "Max CS" },
+             {"title": "Max RS"},
+             {"title": "Max PS" }
+       /*      { "data": "team",
+                 "class": "align-right"},
+             /!*{ "data": "star" }*!/
+             { "data": null,
 
-            { "data": "team",
-              "class": "align-right"},
-            /*{ "data": "star" }*/
-            { "data": null,
-             "render":function(data,type,full,meta) {
-             return '<button class="mdl-button mdl-js-button mdl-button--icon star-team-btn"><i id="' + data.team + '" class="material-icons">star_border</i></button>';
-             }
-            }
 
-            // { "data": "r" },
-            //{ "data": "p" },
+             }*/
 
-        ]
-        /*"aaSorting": [[ 1, "asc" ], [2, "asc"], [3, "asc"], [4, "asc"]]*/
-    });
+             // { "data": "r" },
+             //{ "data": "p" },
 
+         ]
+         /*"aaSorting": [[ 1, "asc" ], [2, "asc"], [3, "asc"], [4, "asc"]]*/
+     });
     $("#table-container").removeClass("hidden");
     $("#team-list-data-loading").removeClass("is-active");
+
+
+    refreshTeamListData();
+}
+
+function renderTable () {
+    firebase.auth().currentUser.getToken(/* forceRefresh */ false).then(function(idToken) {
+        //console.log(idToken);
+        firebase.database().ref("/tournaments/" + userDefaults.tournament + "/pretourneySkillsLastUpdated").once("value").then(function(snapshot) {
+            var lastUpdate = new Date(snapshot.val()).toISOString();
+            $("#skills-last-update").append(snapshot.val() + ".").removeClass("hidden");
+        });
+        $.ajax("/api/pretournament/fetch", {
+            method: "POST",
+            contentType: "application/json",
+            data: JSON.stringify({"token": idToken,
+                "tournament": userDefaults.tournament}),
+            dataType:"json",
+            success:finishRenderTable,
+            error:function(e) { console.error(e); }
+        });
+    });
 
     //firebaseListenStars();
 }
@@ -91,7 +122,7 @@ function firebaseListenStars() {
 }
 
 function teamToggleStar() {
-    var i = $(this).children("i")
+    var i = $(this).children("i");
     var state = i.text();
     var team = $(this).parents("td").attr("id");
     var tournament = userDefaults.tournament;
@@ -111,4 +142,24 @@ function teamToggleStar() {
 
 $(document).ready(function() {
     $("#table_id").on("click","tbody > tr > td > button.star-team-btn","",teamToggleStar);
+    $("#refresh-skills-data").on("click",refreshTeamListData);
 });
+
+function refreshTeamListData() {
+    //$("#refresh-skills-data").attr("disabled","disabled").text("Working...");
+    firebase.auth().currentUser.getToken(/* forceRefresh */ false).then(function(idToken) {
+        //console.log(idToken);
+        $.ajax("/api/skills/pretournament/refresh", {
+            method: "POST",
+            contentType: "application/json",
+            data: JSON.stringify({
+                "token": idToken,
+                "tournament": userDefaults.tournament
+            }),
+            dataType: "json",
+            }
+        ).then(function(result) {
+           console.log("result",result);
+        });
+    });
+}
