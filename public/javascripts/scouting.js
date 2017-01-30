@@ -1,6 +1,9 @@
   function firebaseInit() {
       firebase.initializeApp(config);
   }
+
+
+  var page = "scout";
   var config = {
       apiKey: "AIzaSyAIvK9HrI4P7MJlzjOHmcWeja2BPEInuTo"
       , authDomain: "wa-robotics-scout.firebaseapp.com"
@@ -9,6 +12,15 @@
       , messagingSenderId: "490870467180"
   };
   firebaseInit();
+  firebase.auth().onAuthStateChanged(function (user) {
+      if (user) {
+          signedInUser = user;
+          $("#sign-in").hide();
+          getUserDefaults();
+      } else {
+          window.location = "/auth"; //user is not signed in, redirect to sign in page
+      }
+  });
   var globalInfo = {};
   var sku;
   function loadMatchData(data, forOtherMatch) {
@@ -143,10 +155,7 @@
       //load matches for match selector
       //DISABLE NO REFRESH FLAG!!!!!
       //$('body').append('<script src=\"https://script.google.com/a/macros/woodward.edu/s/AKfycbxsKMe0cdyYScaJXipBoA2bFSY8Aj-jxlQqyS4aDOI/exec?type=getUnscoredMatchInfo&numMatches=3&id=' + instanceID + '&prefix=loadMatchData&norefresh=true\"><\/script>');
-      firebase.database().ref('/tournaments/' + tournament + '/sku').once('value').then(function (snapshot) {
-          sku = snapshot.val();
-          finishGetUnscoredMatches(sku);
-      });
+
       $('#start-auton-timer').click(function () {
           $('#ready-auton').addClass('hidden');
           $('#auton-timer-running').removeClass('hidden');

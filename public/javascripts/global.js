@@ -29,6 +29,11 @@ function getUserDefaults() {
             getTeamMatches();
         } else if (page === "teamList") {
             renderTable();
+        } else if (page === "scout") {
+            firebase.database().ref('/tournaments/' + userDefaults.tournament + '/sku').once('value').then(function (snapshot) {
+                sku = snapshot.val();
+                finishGetUnscoredMatches(sku);
+            });
         }
     });
 }
