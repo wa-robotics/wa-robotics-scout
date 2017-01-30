@@ -4,11 +4,13 @@ function getUserDefaults() {
     db.ref("/userDefaults/" + firebase.auth().currentUser.uid).once("value").then(function (snapshot) {
         userDefaults = snapshot.val();
         /*organization = userDefaults.org;
-        tournament = userDefaults.tournament;
-        team = userDefaults.team;*/
-        console.log(new Date(userDefaults.expires));
+         tournament = userDefaults.tournament;
+         team = userDefaults.team;*/
+        //console.log(new Date(userDefaults.expires));
         console.log(new Date().getDate());
-        if (userDefaults === null || new Date(userDefaults.expires) < new Date()) { //defaults have expired
+        if (userDefaults == null) {  //if userDefaults is null, redirect to selection page
+            window.location = "/select";
+        } else if (new Date(userDefaults.expires) < new Date()) { //defaults have expired
             window.location = "/select";
         }
         console.log(userDefaults);
