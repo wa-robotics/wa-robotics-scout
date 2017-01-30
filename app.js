@@ -29,6 +29,18 @@ if (process.env.DEPLOY_TYPE === "STAGING") {
     app.use("/*", utils.basicAuth());
 }
 app.use("/", index);
+app.use("/teams",function (req, res, next) {
+    res.render("teamlist", {
+        title: "WARS: Team list",
+        showMenu: true
+    });
+});
+app.use("/select", function (req,res,next) {
+    res.render("selectTournament", {
+        title: "WARS: Select tournament",
+        showMenu: true
+    });
+});
 app.use("/search", search);
 app.use("/api", api);
 app.use("/scout", scout);
