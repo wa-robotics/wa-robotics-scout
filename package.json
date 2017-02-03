@@ -13,7 +13,7 @@
     "debug": "~2.6.0",
     "ejs": "~2.5.5",
     "express": "~4.14.0",
-    "firebase": "^3.6.8",
+    "firebase": "^3.6.6",
     "firebase-admin": "^4.1.0",
     "firebase-queue": "^1.6.1",
     "morgan": "~1.7.0",
