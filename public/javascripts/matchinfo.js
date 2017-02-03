@@ -29,7 +29,7 @@ function processResults (team,alliance,value) {
     var currentTeamInfo;
     var propertyValue;
     output = '<div class="team-info-table-container mdl-cell--2-col-desktop mdl-cell--4-col-tablet mdl-cell--4-col-phone"><h5><strong>' + alliance + ' - ' + team
-            + ' </strong></h5><table class="team-info-table mdl-data-table mdl-js-data-table mdl-shadow--2dp full-width scouting-table-disp"><thead><tr><th class="mdl-data-table__cell--non-numeric">Property</th><th>Value</th></tr></thead><tbody>';
+            + ' </strong></h5><table cellspacing="0" width="100%" class="display team-info-table mdl-shadow--2dp full-width scouting-table-disp"><thead><tr><th>Property</th><th>Value</th></tr></thead><tbody>';
 
         if (value !== null) {
             currentTeamInfo = value;
@@ -41,11 +41,11 @@ function processResults (team,alliance,value) {
                     for (var nestedProp in value[prop]) {
                         console.log("nestedProp",nestedProp);
                         propertyValue = cleanNames[prop + "-" + nestedProp];
-                        output += '<tr><td class="mdl-data-table__cell--non-numeric">' + propertyValue + '</td><td class="mdl-data-table__cell--non-numeric">' + value[prop][nestedProp] + '</td></tr>';
+                        output += '<tr><td>' + propertyValue + '</td><td>' + value[prop][nestedProp] + '</td></tr>';
                     }
                 } else {
                     propertyValue = cleanNames[prop];
-                    output += '<tr><td class="mdl-data-table__cell--non-numeric">' + propertyValue + '</td><td class="mdl-data-table__cell--non-numeric">' + value[prop] + '</td></tr>';
+                    output += '<tr><td>' + propertyValue + '</td><td>' + value[prop] + '</td></tr>';
                 }
             }
 
@@ -172,7 +172,7 @@ function scoutingFormDataFetch(teams,elim) {
         }
     }
     var team = teams.pop();
-    firebase.database().ref('/scouting/' + org + '/' + tournament).orderByChild("team").equalTo(team).limitToLast(1).once('value').then(function (snapshot) {
+    firebase.database().ref('/scouting/' + userDefaults.org + '/' + userDefaults.tournament).orderByChild("team").equalTo(team).limitToLast(1).once('value').then(function (snapshot) {
 
         //getRankInfo(team);
         if (snapshot.val() !== null) {
@@ -192,6 +192,16 @@ function scoutingFormDataFetch(teams,elim) {
         //processResults(toDisplay)
         if (teams.length >= 1) {
             scoutingFormDataFetch(teams);
+        } else {
+            $(".team-info-table-container > table.team-info-table").each(function() {
+                console.log("ran");
+               $(this).DataTable({
+                    paging:false,
+                   scrollX:true,
+                   fixedColumns:true
+                });
+                console.log($(this));
+            });
         }
     });
 }
@@ -225,7 +235,7 @@ function getTeamsInMatch(sku) {
         success:getScoutingInfo
     });
 }
-
+var page = "matchInfo";
 firebase.auth().onAuthStateChanged(function (user) {
     if (user) {
         signedInUser = user;
@@ -234,10 +244,7 @@ firebase.auth().onAuthStateChanged(function (user) {
             $.ajax("/api/scout/" + org + "/" + tournament + "/" + qmatch, { data: JSON.stringify({"token":idToken}),
                 dataType:"json", success:renderMatchInfo,method: "POST",contentType:"application/json"});
         });*/
-        firebase.database().ref('/tournaments/' + tournament + '/sku').once('value').then(function (snapshot) {
-            sku = snapshot.val();
-            getTeamsInMatch(sku);
-        });
+        getUserDefaults();
 
     } else {
         window.location = "/auth"; //user is not signed in, redirect to sign in page

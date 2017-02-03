@@ -18,14 +18,13 @@ router.get('/matchinfo/:org/:tournament/:qmatchnum',function (req, res, next) {
 });
 
 router.get('/', function (req, res, next) {
-    /*const err = new Error("Bad Request");
-    res.locals.message = err.message;
-    err.status = 400;
-    res.locals.error = req.app.get("env") === "development" ? err : {};
-    // render the error page
-    res.status(err.status || 500);
-    res.render("error");*/
-    next();
+    //let sanitizedSku = req.params.sku.toUpperCase().trim();
+    /*if (!/RE-VRC-[0-9]{2}-[0-9]{4}/gi.test(sanitizedSku)) {
+     next();
+     }*/
+    res.render('scout', {
+        title: 'WARS: Scout matches'
+    });
 });
 
 
