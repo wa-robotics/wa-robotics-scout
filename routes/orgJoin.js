@@ -78,7 +78,7 @@ router.post('/:orgauth/add', function (req, res, next) {
     //console.log("token",req.body.toString());
     let orgId;
     let uid;
-    validateOrgAuthCodeFormat(code);
+    validateOrgAuthCodeFormat(code,next);
     //Process:
     //1. Validate the orgauth token and if valid, get the organization it corresponds to
     //2. Take the user's token and get the UID from it (this prevents tampering

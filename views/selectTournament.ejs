@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <base target="_top">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <%= //noinspection BadExpressionStatementJS
+        title %>
+    </title>
+    <link rel="stylesheet" href="https://code.getmdl.io/1.1.3/material.blue_grey-orange.min.css" />
+    <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="stylesheets/global.css" type="text/css" />
+    <!-- for Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/3.6.1/firebase.js"></script>
+
+</head>
+
+<body class="mdl-color--grey-50">
+<div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+    <%- include('nav', {includeMenu: true, includeSignOut: true}); %>
+    <main class="mdl-layout__content">
+        <div class="page-content">
+            <div class="mdl-grid">
+                <div class="mdl-cell--4-col-desktop mdl-cell--4-offset-desktop mdl-cell--6-col-tablet mdl-cell--1-offset-tablet mdl-cell-4-col-phone">
+                    <div id="content">
+                        <h4 class="mdl-typography--text-center">What tournament are you at?</h4>
+                        <p>In order to show you data, WARS needs to know what organization, tournament, and team to show data for.  Whatever
+                        you choose will become the default for the rest of the tournament, or 24 hours if that'd be longer.</p>
+                        <div class="mdl-grid">
+                            <div class="mdl-cell--12-col"> View data for organization:
+                                <select id="org-select" disabled="disabled">
+                                    <option class="hidden" value="">Select an organization</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mdl-grid">
+                            <div class="mdl-cell--12-col"> View data for tournament:
+                                <select id="tournament-select" disabled="disabled">
+                                    <option class="hidden" value="">Select a tournament</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mdl-grid">
+                            <div class="mdl-cell--12-col"> Show matches for <span id="org-short-name"></span> team:
+                                <select id="team-select" disabled="disabled">
+                                    <option class="hidden" value="">Select a team</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button id="continue" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored" disabled="disabled">Continue</button>
+                        <p id="error-div"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <%- include("footer")%>
+
+</main>
+</div>
+<script src="https://code.getmdl.io/1.1.3/material.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script src="../../javascripts/selectTournament.js"></script>
+<%- include("analytics"); %>
+</body>
+
+</html>
