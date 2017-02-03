@@ -571,6 +571,8 @@
 
       var value,
           currGroupIndex = 0;
+
+
       stem = checkboxValsArray[0].id.substring(0,id.indexOf("-") + 1);
       for (var i = 0; i < checkboxValsArray.length; i++) {
           id = checkboxValsArray[i].id;
@@ -614,8 +616,8 @@
           formAnswers.checkbox[$(this).attr('id')] = $(this).siblings('span').text();
       });
       /*$('input[type="checkbox"]:not(:checked)').each(function() {
-        formAnswers.checkbox[$(this).attr('id')] = $(this).siblings('span').text();
-      });*/
+       formAnswers.checkbox[$(this).attr('id')] = $(this).siblings('span').text();
+       });*/
       formAnswers.meta = {
           autonWinner: autonWinner,
           match: matchSelected,
@@ -653,13 +655,28 @@
           }
 
       }; //r is the processed formResponses object; in the future, this should be
-            //done server-side to reduce client JS load and to prevent tampering with data
+      //done server-side to reduce client JS load and to prevent tampering with data
 
 
-      var checkboxStrings = checkboxToString(formAnswers.checkbox);
-      r.auton.actions = checkboxStrings[0].toString();
-      r.robot.type = checkboxStrings[1].toString();
-      console.log(r);
+      if (Object.keys(formAnswers.checkbox).length > 0) {
+          var checkboxStrings = checkboxToString(formAnswers.checkbox);
+          try {
+              r.auton.actions = checkboxStrings[0].toString();
+          } catch (e) {
+              r.auton.actions = "Unknown";
+          }
+          try {
+              r.robot.type = checkboxStrings[1].toString();
+          } catch (e) {
+              r.robot.type = "Unknown";
+          }
+      } else {
+          r.auton.actions = "Unknown";
+          r.robot.type = "Unknown";
+      }
+
+      console.log("r",r);
+      console.log("form answrs",formAnswers)
 
       var autonPlayStart,
           dcHangDuration,
@@ -686,19 +703,15 @@
       //auton-start-time is the marked time (result of pressing "Mark time" button) for when the autonomous period starts
       if (formAnswers.markedTimes["auton-start-time"] !== "") {
           autonPlayStart = 15 - getSecondsBetween_(parseInt(formAnswers.markedTimes["autonStart"]),parseInt(formAnswers.markedTimes["auton-start-time"]));
-      } else if (parseInt(formAnswers.text["auton-play-start-time"]) >= 0 && parseInt(formAnswers.text["auton-play-start-time"]) <= 15) {
-          autonPlayStart = parseInt(formAnswers.text["auton-play-start-time"]);
+      } else if (formAnswers.text["auton-play-start-time"] !== "") {
+          if (parseInt(formAnswers.text["auton-play-start-time"]) >= 0 && parseInt(formAnswers.text["auton-play-start-time"]) <= 15) {
+              autonPlayStart = parseInt(formAnswers.text["auton-play-start-time"]);
+          }
       } else {
           autonPlayStart = "unknown";
       }
 
-      try {
-          r.auton.startTime = autonPlayStart;
-      } catch(e) {
-          r.auton.startTime = "unknown or no auton";
-      }
-
-
+      console.log(autonPlayStart);
 
       if (formAnswers.markedTimes["dc-hang-start"] !== "") {
           dcHangStart = 105 - getSecondsBetween_(parseInt(formAnswers.markedTimes.driverStart),parseInt(formAnswers.markedTimes["dc-hang-start"]));
@@ -707,6 +720,7 @@
       } else {
           dcHangStart = "unknown";
       }
+
       try {
           r.hang.startTime = dcHangStart;
       } catch(e) {
@@ -738,7 +752,16 @@
       var tournamentID = 0;
       console.log("ran");
       console.log(formAnswers);
-      var pushRef= firebase.database().ref("/scouting/" + org + "/" + tournament).push();
+
+      for (var prop in r) {
+          if (r.hasOwnProperty(prop)) {
+              /*if (isNaN(r[prop])) {
+                  r[prop] = "Unknown";
+              }*/
+          }
+      }
+
+      var pushRef= firebase.database().ref("/scouting/" + userDefaults.org + "/" + userDefaults.tournament).push();
       pushRef.set(r).then(function() {
           $('#submit-form').removeAttr("disabled");
           $('#submit-success').removeClass("hidden");

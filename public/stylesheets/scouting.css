@@ -119,6 +119,8 @@
     border: 2px solid #F44336;
 }
 
+
+
 .row-team.option-red-alliance.not-selected,
 .team-select.not-selected > .match-row > .row-team.option-red-alliance {
     border: 1px dashed #F44336;
@@ -139,6 +141,10 @@
 
 .team-select.blue-alliance-selected {
     background: #c0e1fc;
+}
+
+.row-team.option-highlight {
+    border: 2px solid #FFAB00;
 }
 
 .row-team,
@@ -254,7 +260,7 @@ specified widths.  See http://stackoverflow.com/questions/18140691/horizontally-
 
 .espion-radio-select > .option > .done > .mdl-textfield,
 .espion-radio-select > .option > .done > .mdl-textfield > .mdl-textfield__input,
-.espion-radio-select > .option > .done > .mdl-textfield > .mdl-textfield__label,
+.espion-radio-select > .option > .done > .mdl-textfield > .mdl-textfield__label
 {
     width: 100% !important;
     max-width: 175px;
@@ -318,4 +324,10 @@ div.question.espion-text > p {
 
 .espion-text-input {
     margin: -18px !important;
+}
+
+div.mdl-textfield#container-auton-actions-other > .mdl-textfield__label,
+div.mdl-textfield#container-auton-actions-other > .mdl-textfield__input{
+    padding-top: 0;
+
 }
