@@ -30,8 +30,8 @@ function finishRenderTable(response) {
              // { "data": "r" },
              //{ "data": "p" },
 
-         ]
-         /*"aaSorting": [[ 1, "asc" ], [2, "asc"], [3, "asc"], [4, "asc"]]*/
+         ]//,
+         //"order": [[ 3, "desc" ], [5, "desc"], [4, "desc"]]
      });
     $("#table-container").removeClass("hidden");
     $("#team-list-data-loading").removeClass("is-active");
