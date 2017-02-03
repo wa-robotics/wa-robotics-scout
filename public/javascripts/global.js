@@ -23,7 +23,7 @@ function getUserDefaults() {
         return db.ref("/tournaments/" + userDefaults.tournament + "/sku").once("value");
     }).then(function (snapshot) {
         userDefaults.tournamentSku = snapshot.val();
-        $("#viewing-info > div").text("Viewing " + userDefaults.orgName + " > " + userDefaults.tournamentName);
+        $("#viewing-info > div").text("Viewing " + userDefaults.orgName + " > " + userDefaults.tournamentName).append(' (<a href="/select">change</a>)');
         $("#viewing-info").removeClass("hidden");
         if (page === "index") {
             getTeamMatches();
@@ -34,6 +34,8 @@ function getUserDefaults() {
                 sku = snapshot.val();
                 finishGetUnscoredMatches(sku);
             });
+        } else if (page === "matchInfo") {
+            getTeamsInMatch(userDefaults.tournamentSku);
         }
     });
 }
