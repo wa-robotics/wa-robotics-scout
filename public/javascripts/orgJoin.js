@@ -18,7 +18,7 @@ function redirectToIndex() {
 
 function showError(info) {
     console.log(info);
-    $("#submit-error").removeClass("hidden").append("An error occurred while processing your request: " + info)
+    $("#submit-error").removeClass("hidden").append("An error occurred while processing your request: " + info);
 }
 function finishJoin() {
     var teamNum = $("#team-stem").val();

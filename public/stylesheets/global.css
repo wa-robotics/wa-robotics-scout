@@ -150,3 +150,19 @@ table.team-info-table {
     margin-left: 45% !important;
     margin-top: 5px;
 }
+#spinner-container {
+    position: fixed;
+    z-index: 1000;
+    top:50%;
+    left:50%;
+    height:100%;
+    width:100%;
+}
+
+#viewing-info > div {
+    font-weight: bold;
+}
+
+.align-right {
+    text-align: right;
+}
