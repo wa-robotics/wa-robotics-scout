@@ -1,6 +1,9 @@
   function firebaseInit() {
       firebase.initializeApp(config);
   }
+
+
+  var page = "scout";
   var config = {
       apiKey: "AIzaSyAIvK9HrI4P7MJlzjOHmcWeja2BPEInuTo"
       , authDomain: "wa-robotics-scout.firebaseapp.com"
@@ -9,6 +12,15 @@
       , messagingSenderId: "490870467180"
   };
   firebaseInit();
+  firebase.auth().onAuthStateChanged(function (user) {
+      if (user) {
+          signedInUser = user;
+          $("#sign-in").hide();
+          getUserDefaults();
+      } else {
+          window.location = "/auth"; //user is not signed in, redirect to sign in page
+      }
+  });
   var globalInfo = {};
   var sku;
   function loadMatchData(data, forOtherMatch) {
@@ -23,7 +35,21 @@
               data.results.forEach(function (matchInfo, index, array) {
                   if (parseInt(matchInfo.round) === 2) { //only show qualification matches (round 2)
                       matchesVisible.push(matchInfo.matchnum); //now that we know we can display the match, add it to the array of visible matches
-                      $('<div class="team-select"><div class="match-row"> <div class="row-team option-red-alliance">' + matchInfo.red1 + '</div><div class="row-team filler"></div><div class="row-team option-red-alliance">' + matchInfo.red2 + '</div><div class="match-number">Q' + matchInfo.matchnum + '</div><div class="row-team option-blue-alliance">' + matchInfo.blue1 + '</div><div class="row-team filler"></div><div class="row-team option-blue-alliance">' + matchInfo.blue2 + '</div></div></div>').insertBefore('#select-other-match');
+                      var red1Highlight = "", red2Highlight = "", blue1Highlight = "", blue2Highlight = "";
+                      var starred = matchInfo.starred;
+                      if (starred.indexOf(matchInfo.red1) > -1) {
+                          red1Highlight = " option-highlight";
+                      }
+                      if (starred.indexOf(matchInfo.red2) > -1) {
+                          red2Highlight = " option-highlight";
+                      }
+                      if (starred.indexOf(matchInfo.blue1) > -1) {
+                          blue1Highlight = " option-highlight";
+                      }
+                      if (starred.indexOf(matchInfo.blue2) > -1) {
+                          blue2Highlight = " option-highlight";
+                      }
+                      $('<div class="team-select"><div class="match-row"> <div class="row-team option-red-alliance' + red1Highlight + '">' + matchInfo.red1 + '</div><div class="row-team filler"></div><div class="row-team option-red-alliance' + red2Highlight + '">' + matchInfo.red2 + '</div><div class="match-number">Q' + matchInfo.matchnum + '</div><div class="row-team option-blue-alliance' + blue1Highlight + '">' + matchInfo.blue1 + '</div><div class="row-team filler"></div><div class="row-team option-blue-alliance' + blue2Highlight + '">' + matchInfo.blue2 + '</div></div></div>').insertBefore('#select-other-match');
                   }
               });
           }
@@ -133,9 +159,12 @@
 
   function finishGetUnscoredMatches(sku) {
       "use strict";
-      $.ajax("/api/" + sku + "/unscored/3", {
-          success: callLoadMatchDataReg
+      firebase.auth().currentUser.getToken(/* forceRefresh */ false).then(function(idToken) {
+          $.ajax("/api/" + sku + "/unscored/3?highlight=" + userDefaults.tournament + "&token=" + idToken, {
+              success: callLoadMatchDataReg
+          });
       });
+
   }
   $(document).ready(function () {
       "use strict";
@@ -143,10 +172,7 @@
       //load matches for match selector
       //DISABLE NO REFRESH FLAG!!!!!
       //$('body').append('<script src=\"https://script.google.com/a/macros/woodward.edu/s/AKfycbxsKMe0cdyYScaJXipBoA2bFSY8Aj-jxlQqyS4aDOI/exec?type=getUnscoredMatchInfo&numMatches=3&id=' + instanceID + '&prefix=loadMatchData&norefresh=true\"><\/script>');
-      firebase.database().ref('/tournaments/' + tournament + '/sku').once('value').then(function (snapshot) {
-          sku = snapshot.val();
-          finishGetUnscoredMatches(sku);
-      });
+
       $('#start-auton-timer').click(function () {
           $('#ready-auton').addClass('hidden');
           $('#auton-timer-running').removeClass('hidden');
@@ -562,6 +588,8 @@
 
       var value,
           currGroupIndex = 0;
+
+
       stem = checkboxValsArray[0].id.substring(0,id.indexOf("-") + 1);
       for (var i = 0; i < checkboxValsArray.length; i++) {
           id = checkboxValsArray[i].id;
@@ -605,8 +633,8 @@
           formAnswers.checkbox[$(this).attr('id')] = $(this).siblings('span').text();
       });
       /*$('input[type="checkbox"]:not(:checked)').each(function() {
-        formAnswers.checkbox[$(this).attr('id')] = $(this).siblings('span').text();
-      });*/
+       formAnswers.checkbox[$(this).attr('id')] = $(this).siblings('span').text();
+       });*/
       formAnswers.meta = {
           autonWinner: autonWinner,
           match: matchSelected,
@@ -624,33 +652,39 @@
           alliance: formAnswers.meta.alliance,
           auton: {
               startTime: null,
-              pointsScored: parseInt(formAnswers.text["auton-pts-scored"]),
+              pointsScored: parseInt(formAnswers.text["auton-pts-scored"]) || "Unknown",
               actions: null
           },
           robot: {
               type: null,
-              strafes: formAnswers.radio["robot-strafes"],
-              platformStability: formAnswers.radio["platform-stability"],
-              platformHolding: formAnswers.radio["objs-fall"],
-              platformStars: formAnswers.text["driver-stars-held"],
-              platformCubes: formAnswers.text["driver-cubes-held"]
+              strafes: formAnswers.radio["robot-strafes"] || "Unknown",
+              platformStability: formAnswers.radio["platform-stability"] || "Unknown",
+              platformHolding: formAnswers.radio["objs-fall"] || "Unknown",
+              platformStars: formAnswers.text["driver-stars-held"] || "Unknown",
+              platformCubes: formAnswers.text["driver-cubes-held"] || "Unknown"
           },
           hang: {
               startTime: null,
               endTime: null,
               duration: null,
-              result: formAnswers.radio["driver-hang-result"],
-              partnerHelp: formAnswers.radio["hang-assistance"]
+              result: formAnswers.radio["driver-hang-result"] || "Unknown",
+              partnerHelp: formAnswers.radio["hang-assistance"] || "Unknown"
           }
 
       }; //r is the processed formResponses object; in the future, this should be
-            //done server-side to reduce client JS load and to prevent tampering with data
+      //done server-side to reduce client JS load and to prevent tampering with data
 
 
-      var checkboxStrings = checkboxToString(formAnswers.checkbox);
-      r.auton.actions = checkboxStrings[0].toString();
-      r.robot.type = checkboxStrings[1].toString();
-      console.log(r);
+      console.log("Object.keys(formAnswers.checkbox).length > 0",Object.keys(formAnswers.checkbox).length > 0);
+      if (Object.keys(formAnswers.checkbox).length > 0) {
+          var checkboxStrings = checkboxToString(formAnswers.checkbox);
+          r.robot.type = checkboxStrings[0].toString() || "Unknown";
+      } else {
+          r.robot.type = "Unknown";
+      }
+
+      console.log("r",r);
+      console.log("form answrs",formAnswers)
 
       var autonPlayStart,
           dcHangDuration,
@@ -670,26 +704,23 @@
               r.match = "Q" + formAnswers.text["manual-match-num"];
           }
       } catch (e) {
-          Logger.log(e);
+          //Logger.log(e);
       }
 
       //autonStart is when the autonomous period starts
       //auton-start-time is the marked time (result of pressing "Mark time" button) for when the autonomous period starts
       if (formAnswers.markedTimes["auton-start-time"] !== "") {
           autonPlayStart = 15 - getSecondsBetween_(parseInt(formAnswers.markedTimes["autonStart"]),parseInt(formAnswers.markedTimes["auton-start-time"]));
-      } else if (parseInt(formAnswers.text["auton-play-start-time"]) >= 0 && parseInt(formAnswers.text["auton-play-start-time"]) <= 15) {
-          autonPlayStart = parseInt(formAnswers.text["auton-play-start-time"]);
+      } else if (formAnswers.text["auton-play-start-time"] !== "") {
+          if (parseInt(formAnswers.text["auton-play-start-time"]) >= 0 && parseInt(formAnswers.text["auton-play-start-time"]) <= 15) {
+              autonPlayStart = parseInt(formAnswers.text["auton-play-start-time"]);
+          }
       } else {
           autonPlayStart = "unknown";
       }
 
-      try {
-          r.auton.startTime = autonPlayStart;
-      } catch(e) {
-          r.auton.startTime = "unknown or no auton";
-      }
-
-
+      console.log(autonPlayStart);
+      r.auton.startTime = autonPlayStart || "Unknown";
 
       if (formAnswers.markedTimes["dc-hang-start"] !== "") {
           dcHangStart = 105 - getSecondsBetween_(parseInt(formAnswers.markedTimes.driverStart),parseInt(formAnswers.markedTimes["dc-hang-start"]));
@@ -698,11 +729,7 @@
       } else {
           dcHangStart = "unknown";
       }
-      try {
-          r.hang.startTime = dcHangStart;
-      } catch(e) {
-          r.hang.startTime = "unknown";
-      }
+      r.hang.startTime = dcHangStart  || "Unknown";
 
       if (formAnswers.markedTimes["dc-hang-end"] !== "") {
           dcHangEnd = 105 - getSecondsBetween_(parseInt(formAnswers.markedTimes.driverStart),parseInt(formAnswers.markedTimes["dc-hang-end"]));
@@ -712,16 +739,13 @@
           dcHangEnd = "unknown";
       }
 
-      try {
-          r.hang.endTime = dcHangEnd;
-      } catch (e) {
-          r.hang.endTime = "unknown";
-      }
+
+      r.hang.endTime = dcHangEnd || "Unknown";
 
       if (dcHangStart > dcHangEnd) {
-          dcHangDuration = dcHangStart - dcHangEnd
+          dcHangDuration = dcHangStart - dcHangEnd;
       } else {
-          dcHangDuration = "Unknown (hang start time was later than end time)";
+          dcHangDuration = "Unknown (invalid hang time(s))";
       }
       r.hang.duration = dcHangDuration;
 
@@ -729,7 +753,34 @@
       var tournamentID = 0;
       console.log("ran");
       console.log(formAnswers);
-      var pushRef= firebase.database().ref("/scouting/" + org + "/" + tournament).push();
+      let autonActions = [];
+      $("#simpleList2 li").each(function() {
+          if ($(this).children("div").length > 0) {
+              autonActions.push($($($(this).children("div")[0]).children("input")[0]).val()); //HACK: yeah... that's a triple-nested jQuery selector.  I am sorry future self.  You should refactor that someday
+              //console.log($(this).children("div")[0].children("input")[0].val());
+          } else {
+              autonActions.push($(this).text().substring(12));
+          }
+      });
+      r.auton.actions = autonActions.toString();
+
+      for (var prop in r) {
+          if (prop === "robot" || prop === "hang" || prop === "auton") {
+              for (var nestedProp in r[prop]) {
+                  console.log("nestedProp",nestedProp);
+                  if (Number.isNaN(r[prop][nestedProp])) {
+                      r[prop][nestedProp] = "Unknown";
+                  }
+              }
+          } else {
+              if (Number.isNaN(r[prop])) {
+                  r[prop] = "Unknown";
+              }
+          }
+      }
+      console.log("new r",r);
+
+      var pushRef= firebase.database().ref("/scouting/" + userDefaults.org + "/" + userDefaults.tournament).push();
       pushRef.set(r).then(function() {
           $('#submit-form').removeAttr("disabled");
           $('#submit-success').removeClass("hidden");

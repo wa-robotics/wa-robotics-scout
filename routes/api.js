@@ -30,6 +30,14 @@ let skillsDataFetchFbApp = admin.initializeApp({
     }
 },"PRETOURNEY_SKILLS_FETCH");
 
+let starredTeamsFetchFbApp = admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    databaseURL: "https://wa-robotics-scout.firebaseio.com",
+    databaseAuthVariableOverride: {
+        uid: "starred-teams-fetch"
+    }
+},"STARRED_TEAMS_FETCH");
+
 function getTeamMatchesVexDb(res, sku, teamNum) {
     teamNum = teamNum.toString();
     if (!/^[0-9]{1,5}[a-zA-Z]?$/.test(teamNum)) {
@@ -52,16 +60,62 @@ function getTeamMatchesVexDb(res, sku, teamNum) {
     }
 }
 
-function getUnscoredMatches(res, sku, num) {
+//Precondition: the caller must verify that the user is authorized to receive starred teams data
+function getUnscoredMatches(res, sku, num,getStarred) {
     request("https://api.vexdb.io/v1/get_matches?scored=0&limit_number=" + num + "&sku=" + sku, (error, response, body) => {
         var raw = body;
         var parsed = JSON.parse(raw);
         var results = {
             status: 1,
-            results: parsed.result
+            results: parsed.result,
         };
-        console.log(results);
-        res.send(JSON.stringify(results));
+        //console.log(results);
+        if (getStarred !== -1) {
+            let tournament = getStarred;
+            let db = starredTeamsFetchFbApp.database();
+            db.ref("/tournament_team_stars/" + tournament).once("value").then(function(snapshot) {
+                let starredTeamsObj = snapshot.val();
+                let starredTeams = [];
+                if (starredTeamsObj !== null) {
+                    starredTeams = Object.keys(starredTeamsObj);
+                }
+                console.log(starredTeams);
+                return starredTeams;
+
+
+            }).then(function(starredTeams) {
+                let results = JSON.parse(raw);
+                console.log("get starred matches");
+                let starredInMatch = [];
+                for (let i = 0; i < results.result.length; i++) {
+                    let match = results.result[i];
+                    console.log("match",match);
+                    if (starredTeams.indexOf(match.red1) !== -1) {
+                        console.log(starredTeams.indexOf(match.red1));
+                        starredInMatch.push(match.red1);
+                    }
+                    if (starredTeams.indexOf(match.red2) !== -1) {
+                        starredInMatch.push(match.red2);
+                    }
+                    if (starredTeams.indexOf(match.blue1) !== -1) {
+                        starredInMatch.push(match.blue);
+                    }
+                    if (starredTeams.indexOf(match.blue2) !== -1) {
+                        console.log(starredTeams.indexOf(match.blue2));
+                        starredInMatch.push(match.blue2);
+                    }
+                    results.result[i].starred = starredInMatch;
+                    starredInMatch = [];
+                }
+                var x = {
+                    status: 1,
+                    results: results.result,
+                };
+                res.send(JSON.stringify(x));
+                //results.starred = starredInMatch;
+            });
+        }
+
     });
 }
 
@@ -424,7 +478,46 @@ router.get('/:sku/:team', function (req, res, next) {
 });
 router.get('/:sku/unscored/:num', (req, res, next) => {
     res.set('Content-Type', 'application/json');
-    getUnscoredMatches(res, req.params.sku, parseInt(req.params.num));
+    console.log(req.query.highlight);
+    //console.log(req.query.token.length);
+    let getStarredTeams = null;
+    let orgId;
+    if (req.query.highlight == null) {
+        console.log("don't show starred teams");
+        getStarredTeams = -1;
+        getUnscoredMatches(res, req.params.sku, parseInt(req.params.num),getStarredTeams);
+    } else {
+        console.log("show starred teams for " + req.query.highlight);
+        getStarredTeams = req.query.highlight;
+        let tournament = getStarredTeams;
+        let db = starredTeamsFetchFbApp.database();
+        let token = req.query.token;
+        db.ref("/tournaments/" + tournament + "/organization").once("value").then(function(snapshot) {
+            orgId = snapshot.val();
+            if (orgId !== null) { //Success - we got something back
+                return admin.auth().verifyIdToken(token);
+            } else {
+                Promise.reject("invalid org id returned"); //stop and throw an error; the organization supplied probably doesn't exist
+            }
+        }).then(function(decodedToken) {
+            uid = decodedToken.uid;
+            return db.ref("/organizations/" + orgId + "/users/" + uid).once("value");
+        }).then(function(snapshot) { //verify that this user is listed as a member on the organization that the tournament belongs to
+            console.log(snapshot.val());
+            let authResult = snapshot.val();
+            if (authResult !== null) {
+                return getUnscoredMatches(res, req.params.sku, parseInt(req.params.num),getStarredTeams);
+            } else {
+                Promise.reject("The user is not authorized to perform this action: ERR_USER_NOT_AUTHORIZED");
+            }
+            return true;
+        }).catch(function (error) {
+            console.error("Server error: " + error.message);
+            res.status(500);
+            res.send({"result":"error","status":0,"message":error.message});
+        });
+    }
+
 });
 router.get('/:sku/match/:round/:instance/:num', (req,res,next) => {
     res.set('Content-Type', 'application/json');
