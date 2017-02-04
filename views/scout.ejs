@@ -47,7 +47,7 @@
                             <label class="mdl-textfield__label" for="other-team-num">Team</label> <span class="mdl-textfield__error">Enter a valid team number</span> </div>
                     </div>
                     <div class="question">
-                        <p>When does this team's autonomous play start?  Enter -1000 if no autonomous play ran.
+                        <p>When does this team's autonomous play start?
                             <br /> <em>Enter 15 if it started immediately.  Press <strong>Start</strong> when the autonomous period begins, then press <strong>Mark time</strong>
             to answer this question.  Or press Enter Time at any time to type in a time.</em>
                             <br /> <i class="material-icons">info_outline</i> After you press Mark or Enter time, pressing the opposite button will clear your selection.</p>
@@ -121,18 +121,20 @@
                             <li class="list-group-item"><i class="material-icons">drag_handle</i> Knocked stars off right fence</li>
                             <li class="list-group-item"><i class="material-icons">drag_handle</i> Picked up midfield cube</li>
                             <li class="list-group-item"><i class="material-icons">drag_handle</i> Scored midfield cube</li>
-                            <li class="list-group-item"><i class="material-icons">drag_handle</i> Picked up corner star (close to starting tile)</li>
                             <li class="list-group-item"><i class="material-icons">drag_handle</i> Picked up stars between starting tiles</li>
                             <li class="list-group-item"><i class="material-icons">drag_handle</i> Scored stars between starting tiles</li>
+                            <li class="list-group-item"><i class="material-icons">drag_handle</i> Picked up corner star (close to starting tile)</li>
                             <li class="list-group-item"><i class="material-icons">drag_handle</i> Picked up corner star (far from starting tile)</li>
                             <li class="list-group-item"><i class="material-icons">drag_handle</i> Scored corner star (close to starting tile)</li>
                             <li class="list-group-item"><i class="material-icons">drag_handle</i> Scored corner star (far from starting tile)</li>
+                            <li class="list-group-item"><i class="material-icons">drag_handle</i> Hung high</li>
+                            <li class="list-group-item"><i class="material-icons">drag_handle</i> Hung low</li>
 
                         </ul>
 
 
 
-                        <strong>Action not listed above</strong>
+                        <strong>Action not listed above (drag to appropriate place among other autonomous plays for this robot)</strong>
                         <ul id="otherFactory" class="list-group mdl-list">
                             <li class="list-group-item"><i class="material-icons">drag_handle</i>
                                 <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="container-auton-actions-other">
@@ -149,8 +151,6 @@
                                 handle: ".material-icons",animation:150});
                             Sortable.create(otherFactory, { group:{name: "auton-play-order", pull:"clone",put:false },
                                 handle: ".material-icons",animation:150});
-
-                            $(".list-group-item > i").click(function() { $(this).remove()})
                         </script>
                     </div>
                     <p class="espion-section-header">Driver control</p>

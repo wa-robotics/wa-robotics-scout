@@ -35,7 +35,21 @@
               data.results.forEach(function (matchInfo, index, array) {
                   if (parseInt(matchInfo.round) === 2) { //only show qualification matches (round 2)
                       matchesVisible.push(matchInfo.matchnum); //now that we know we can display the match, add it to the array of visible matches
-                      $('<div class="team-select"><div class="match-row"> <div class="row-team option-red-alliance">' + matchInfo.red1 + '</div><div class="row-team filler"></div><div class="row-team option-red-alliance">' + matchInfo.red2 + '</div><div class="match-number">Q' + matchInfo.matchnum + '</div><div class="row-team option-blue-alliance">' + matchInfo.blue1 + '</div><div class="row-team filler"></div><div class="row-team option-blue-alliance">' + matchInfo.blue2 + '</div></div></div>').insertBefore('#select-other-match');
+                      var red1Highlight = "", red2Highlight = "", blue1Highlight = "", blue2Highlight = "";
+                      var starred = matchInfo.starred;
+                      if (starred.indexOf(matchInfo.red1) > -1) {
+                          red1Highlight = " option-highlight";
+                      }
+                      if (starred.indexOf(matchInfo.red2) > -1) {
+                          red2Highlight = " option-highlight";
+                      }
+                      if (starred.indexOf(matchInfo.blue1) > -1) {
+                          blue1Highlight = " option-highlight";
+                      }
+                      if (starred.indexOf(matchInfo.blue2) > -1) {
+                          blue2Highlight = " option-highlight";
+                      }
+                      $('<div class="team-select"><div class="match-row"> <div class="row-team option-red-alliance' + red1Highlight + '">' + matchInfo.red1 + '</div><div class="row-team filler"></div><div class="row-team option-red-alliance' + red2Highlight + '">' + matchInfo.red2 + '</div><div class="match-number">Q' + matchInfo.matchnum + '</div><div class="row-team option-blue-alliance' + blue1Highlight + '">' + matchInfo.blue1 + '</div><div class="row-team filler"></div><div class="row-team option-blue-alliance' + blue2Highlight + '">' + matchInfo.blue2 + '</div></div></div>').insertBefore('#select-other-match');
                   }
               });
           }
@@ -145,9 +159,12 @@
 
   function finishGetUnscoredMatches(sku) {
       "use strict";
-      $.ajax("/api/" + sku + "/unscored/3", {
-          success: callLoadMatchDataReg
+      firebase.auth().currentUser.getToken(/* forceRefresh */ false).then(function(idToken) {
+          $.ajax("/api/" + sku + "/unscored/3?highlight=" + userDefaults.tournament + "&token=" + idToken, {
+              success: callLoadMatchDataReg
+          });
       });
+
   }
   $(document).ready(function () {
       "use strict";
@@ -635,43 +652,34 @@
           alliance: formAnswers.meta.alliance,
           auton: {
               startTime: null,
-              pointsScored: parseInt(formAnswers.text["auton-pts-scored"]),
+              pointsScored: parseInt(formAnswers.text["auton-pts-scored"]) || "Unknown",
               actions: null
           },
           robot: {
               type: null,
-              strafes: formAnswers.radio["robot-strafes"],
-              platformStability: formAnswers.radio["platform-stability"],
-              platformHolding: formAnswers.radio["objs-fall"],
-              platformStars: formAnswers.text["driver-stars-held"],
-              platformCubes: formAnswers.text["driver-cubes-held"]
+              strafes: formAnswers.radio["robot-strafes"] || "Unknown",
+              platformStability: formAnswers.radio["platform-stability"] || "Unknown",
+              platformHolding: formAnswers.radio["objs-fall"] || "Unknown",
+              platformStars: formAnswers.text["driver-stars-held"] || "Unknown",
+              platformCubes: formAnswers.text["driver-cubes-held"] || "Unknown"
           },
           hang: {
               startTime: null,
               endTime: null,
               duration: null,
-              result: formAnswers.radio["driver-hang-result"],
-              partnerHelp: formAnswers.radio["hang-assistance"]
+              result: formAnswers.radio["driver-hang-result"] || "Unknown",
+              partnerHelp: formAnswers.radio["hang-assistance"] || "Unknown"
           }
 
       }; //r is the processed formResponses object; in the future, this should be
       //done server-side to reduce client JS load and to prevent tampering with data
 
 
+      console.log("Object.keys(formAnswers.checkbox).length > 0",Object.keys(formAnswers.checkbox).length > 0);
       if (Object.keys(formAnswers.checkbox).length > 0) {
           var checkboxStrings = checkboxToString(formAnswers.checkbox);
-          try {
-              r.auton.actions = checkboxStrings[0].toString();
-          } catch (e) {
-              r.auton.actions = "Unknown";
-          }
-          try {
-              r.robot.type = checkboxStrings[1].toString();
-          } catch (e) {
-              r.robot.type = "Unknown";
-          }
+          r.robot.type = checkboxStrings[0].toString() || "Unknown";
       } else {
-          r.auton.actions = "Unknown";
           r.robot.type = "Unknown";
       }
 
@@ -696,7 +704,7 @@
               r.match = "Q" + formAnswers.text["manual-match-num"];
           }
       } catch (e) {
-          Logger.log(e);
+          //Logger.log(e);
       }
 
       //autonStart is when the autonomous period starts
@@ -712,6 +720,7 @@
       }
 
       console.log(autonPlayStart);
+      r.auton.startTime = autonPlayStart || "Unknown";
 
       if (formAnswers.markedTimes["dc-hang-start"] !== "") {
           dcHangStart = 105 - getSecondsBetween_(parseInt(formAnswers.markedTimes.driverStart),parseInt(formAnswers.markedTimes["dc-hang-start"]));
@@ -720,12 +729,7 @@
       } else {
           dcHangStart = "unknown";
       }
-
-      try {
-          r.hang.startTime = dcHangStart;
-      } catch(e) {
-          r.hang.startTime = "unknown";
-      }
+      r.hang.startTime = dcHangStart  || "Unknown";
 
       if (formAnswers.markedTimes["dc-hang-end"] !== "") {
           dcHangEnd = 105 - getSecondsBetween_(parseInt(formAnswers.markedTimes.driverStart),parseInt(formAnswers.markedTimes["dc-hang-end"]));
@@ -735,16 +739,13 @@
           dcHangEnd = "unknown";
       }
 
-      try {
-          r.hang.endTime = dcHangEnd;
-      } catch (e) {
-          r.hang.endTime = "unknown";
-      }
+
+      r.hang.endTime = dcHangEnd || "Unknown";
 
       if (dcHangStart > dcHangEnd) {
-          dcHangDuration = dcHangStart - dcHangEnd
+          dcHangDuration = dcHangStart - dcHangEnd;
       } else {
-          dcHangDuration = "Unknown (hang start time was later than end time)";
+          dcHangDuration = "Unknown (invalid hang time(s))";
       }
       r.hang.duration = dcHangDuration;
 
@@ -752,14 +753,32 @@
       var tournamentID = 0;
       console.log("ran");
       console.log(formAnswers);
+      let autonActions = [];
+      $("#simpleList2 li").each(function() {
+          if ($(this).children("div").length > 0) {
+              autonActions.push($($($(this).children("div")[0]).children("input")[0]).val()); //HACK: yeah... that's a triple-nested jQuery selector.  I am sorry future self.  You should refactor that someday
+              //console.log($(this).children("div")[0].children("input")[0].val());
+          } else {
+              autonActions.push($(this).text().substring(12));
+          }
+      });
+      r.auton.actions = autonActions.toString();
 
       for (var prop in r) {
-          if (r.hasOwnProperty(prop)) {
-              /*if (isNaN(r[prop])) {
+          if (prop === "robot" || prop === "hang" || prop === "auton") {
+              for (var nestedProp in r[prop]) {
+                  console.log("nestedProp",nestedProp);
+                  if (Number.isNaN(r[prop][nestedProp])) {
+                      r[prop][nestedProp] = "Unknown";
+                  }
+              }
+          } else {
+              if (Number.isNaN(r[prop])) {
                   r[prop] = "Unknown";
-              }*/
+              }
           }
       }
+      console.log("new r",r);
 
       var pushRef= firebase.database().ref("/scouting/" + userDefaults.org + "/" + userDefaults.tournament).push();
       pushRef.set(r).then(function() {
