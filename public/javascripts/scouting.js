@@ -5,11 +5,11 @@
 
   var page = "scout";
   var config = {
-      apiKey: "AIzaSyAIvK9HrI4P7MJlzjOHmcWeja2BPEInuTo"
-      , authDomain: "wa-robotics-scout.firebaseapp.com"
-      , databaseURL: "https://wa-robotics-scout.firebaseio.com"
-      , storageBucket: "wa-robotics-scout.appspot.com"
-      , messagingSenderId: "490870467180"
+      apiKey: "AIzaSyAIvK9HrI4P7MJlzjOHmcWeja2BPEInuTo",
+      authDomain: "wa-robotics-scout.firebaseapp.com",
+      databaseURL: "https://wa-robotics-scout.firebaseio.com",
+      storageBucket: "wa-robotics-scout.appspot.com",
+      messagingSenderId: "490870467180"
   };
   firebaseInit();
   firebase.auth().onAuthStateChanged(function (user) {
@@ -411,8 +411,8 @@
 
   function loadOtherMatch() {
       //console.log("clicked");
-      var matchNum = parseInt($('#other-match-num').val())
-          , matchIsVisible = false;
+      var matchNum = parseInt($('#other-match-num').val()),
+          matchIsVisible = false;
       for (var i = 0; i < matchesVisible.length; i++) { //before we load this match, make sure it is not already being displayed
           if (matchNum === matchesVisible[i]) {
               matchIsVisible = true;
@@ -593,7 +593,7 @@
       stem = checkboxValsArray[0].id.substring(0,id.indexOf("-") + 1);
       for (var i = 0; i < checkboxValsArray.length; i++) {
           id = checkboxValsArray[i].id;
-          console.log(id.substring(0,id.indexOf("-") + 1))
+          console.log(id.substring(0,id.indexOf("-") + 1));
           if (id.substring(0,id.indexOf("-") + 1) !== stem) {
               console.log("new stem");
               stem = id.substring(0,id.indexOf("-") + 1);
@@ -684,7 +684,7 @@
       }
 
       console.log("r",r);
-      console.log("form answrs",formAnswers)
+      console.log("form answrs",formAnswers);
 
       var autonPlayStart,
           dcHangDuration,
@@ -710,7 +710,7 @@
       //autonStart is when the autonomous period starts
       //auton-start-time is the marked time (result of pressing "Mark time" button) for when the autonomous period starts
       if (formAnswers.markedTimes["auton-start-time"] !== "") {
-          autonPlayStart = 15 - getSecondsBetween_(parseInt(formAnswers.markedTimes["autonStart"]),parseInt(formAnswers.markedTimes["auton-start-time"]));
+          autonPlayStart = 15 - getSecondsBetween_(parseInt(formAnswers.markedTimes.autonStart),parseInt(formAnswers.markedTimes["auton-start-time"]));
       } else if (formAnswers.text["auton-play-start-time"] !== "") {
           if (parseInt(formAnswers.text["auton-play-start-time"]) >= 0 && parseInt(formAnswers.text["auton-play-start-time"]) <= 15) {
               autonPlayStart = parseInt(formAnswers.text["auton-play-start-time"]);
@@ -780,8 +780,24 @@
       }
       console.log("new r",r);
 
+      let finalResults = {
+          "Team":r.team,
+          "Last scouted in": r.match,
+          "Scores in":"",
+          "Scores every (s)":"",
+          "Scoring device(s)":r.robot.type,
+          "Strafes":r.robot.strafes,
+          "Sturdiness of scoring device":r.robot.platformStability,
+          "Stars held":r.robot.platformStars,
+          "Cubes held":r.robot.platformCubes,
+          "Drops objects":r.robot.platformHolding,
+          "Auton swing (pts)":r.auton.pointsScored,
+          "Auton play":r.auton.actions,
+          "Hang":r.hang.result + " in " + r.hang.duration
+      };
+
       var pushRef= firebase.database().ref("/scouting/" + userDefaults.org + "/" + userDefaults.tournament).push();
-      pushRef.set(r).then(function() {
+      pushRef.set(finalResults).then(function() {
           $('#submit-form').removeAttr("disabled");
           $('#submit-success').removeClass("hidden");
       }).catch(function(e) {
