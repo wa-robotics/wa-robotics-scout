@@ -18,7 +18,17 @@ function finishRenderTable(response) {
              }},
              {"title": "Max CS" },
              {"title": "Max RS"},
-             {"title": "Max PS" }
+             {"title": "Max PS" },
+             {"title": "Scoring" },
+             {"title": "Scores in" },
+             {"title": "Scores every (s)" },
+             {"title": "Claw sturdiness" },
+             {"title": "Stars held" },
+             {"title": "Cubes held" },
+             {"title": "Drops objects" },
+             {"title": "Auton. swing" },
+             {"title": "Auton play." },
+             {"title": "Hang" },
        /*      { "data": "team",
                  "class": "align-right"},
              /!*{ "data": "star" }*!/
