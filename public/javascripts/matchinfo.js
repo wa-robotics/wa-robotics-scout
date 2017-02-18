@@ -20,7 +20,7 @@ var cleanNames = {
     "team":"The team scouted (again)",
     "timestamp":"Ignore this value",
     "user":"Ignore this value"
-}
+};
 
 function processResults (team,alliance,value) {
     console.log(team,alliance,value);
@@ -124,18 +124,6 @@ function test() {
     console.log("haiiii");
 }
 
-function firebaseInit() {
-    firebase.initializeApp(config);
-}
-var config = {
-    apiKey: "AIzaSyAIvK9HrI4P7MJlzjOHmcWeja2BPEInuTo",
-    authDomain: "wa-robotics-scout.firebaseapp.com",
-    databaseURL: "https://wa-robotics-scout.firebaseio.com",
-    storageBucket: "wa-robotics-scout.appspot.com",
-    messagingSenderId: "490870467180"
-};
-firebaseInit();
-
 function renderMatchInfo(data) {
     console.log(data);
     processResults(data);
@@ -236,20 +224,6 @@ function getTeamsInMatch(sku) {
     });
 }
 var page = "matchInfo";
-firebase.auth().onAuthStateChanged(function (user) {
-    if (user) {
-        signedInUser = user;
-        $("#sign-in").hide();
-        /*firebase.auth().currentUser.getToken(true).then(function(idToken) {
-            $.ajax("/api/scout/" + org + "/" + tournament + "/" + qmatch, { data: JSON.stringify({"token":idToken}),
-                dataType:"json", success:renderMatchInfo,method: "POST",contentType:"application/json"});
-        });*/
-        getUserDefaults();
-
-    } else {
-        window.location = "/auth"; //user is not signed in, redirect to sign in page
-    }
-});
 
 function initialize() {
     componentHandler.upgradeAllRegistered(); //to make sure the loading spinner appears and not just "Loading..."

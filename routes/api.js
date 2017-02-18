@@ -393,7 +393,7 @@ router.post('/skills/pretournament/refresh', function (req, res, next) {
             let now = new Date();
             console.log(now.getDate());
             console.log(nextAllowableRefresh.getDate());
-            console.log(now.getDate() > nextAllowableRefresh.getDate())
+            console.log(now.getDate() > nextAllowableRefresh.getDate());
             if (now > nextAllowableRefresh) { //OK to refresh
                 console.log("inside OK to refresh");
                 return true;
