@@ -1,6 +1,3 @@
-
-
-
   var page = "scout";
 
   var globalInfo = {};
@@ -744,7 +741,7 @@
               autonActions.push($(this).text().substring(12));
           }
       });
-      r.auton.actions = autonActions.toString();
+      r.auton.actions = autonActions.toString().replace(/,/g,", ");
 
       for (var prop in r) {
           if (prop === "robot" || prop === "hang" || prop === "auton") {
@@ -774,11 +771,12 @@
           "Cubes held":r.robot.platformCubes,
           "Drops objects":r.robot.platformHolding,
           "Auton swing (pts)":r.auton.pointsScored,
+          "Auton start time":r.auton.startTime,
           "Auton play":r.auton.actions,
           "Hang":r.hang.result + " in " + r.hang.duration
       };
 
-      var pushRef= firebase.database().ref("/scouting/" + userDefaults.org + "/" + userDefaults.tournament).push();
+      /*var pushRef= firebase.database().ref("/scouting/" + userDefaults.org + "/" + userDefaults.tournament).push();
       pushRef.set(finalResults).then(function() {
           $('#submit-form').removeAttr("disabled");
           $('#submit-success').removeClass("hidden");
@@ -787,7 +785,24 @@
           $('#submit-form').removeAttr("disabled");
           $('#submit-error-msg').text(error);
           $('#submit-error').removeClass("hidden");
-      });
+      });*/
+
+      //firebase.database().ref("scouting/" + userDefaults.org + "/" + userDefaults.tournament + "/" + finalResults.Team).set(finalResults);
+
+      var pushRef= firebase.database().ref("/scoutingFormQueue/tasks").push();
+       pushRef.set({
+           formResponses:finalResults,
+           tournament:userDefaults.tournament,
+           org:userDefaults.org
+       }).then(function() {
+       $('#submit-form').removeAttr("disabled");
+       $('#submit-success').removeClass("hidden");
+       }).catch(function(e) {
+       console.error(e);
+       $('#submit-form').removeAttr("disabled");
+       $('#submit-error-msg').text(e);
+       $('#submit-error').removeClass("hidden");
+       });
 
       /*google.script.run.withSuccessHandler(function (result) {
           console.log(result);

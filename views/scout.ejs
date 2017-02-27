@@ -223,13 +223,13 @@
                         <p>Does this robot strafe?</p>
                         <div class="espion-radio-select">
                             <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="strafe-option-yes">
-                                <input type="radio" id="strafe-option-yes" class="mdl-radio__button" name="robot-strafes" value="yes"> <span class="mdl-radio__label">Yes</span> </label>
+                                <input type="radio" id="strafe-option-yes" class="mdl-radio__button" name="robot-strafes" value="Yes"> <span class="mdl-radio__label">Yes</span> </label>
                             <br />
                             <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="strafe-option-no">
-                                <input type="radio" id="strafe-option-no" class="mdl-radio__button" name="robot-strafes" value="none"> <span class="mdl-radio__label">No</span> </label>
+                                <input type="radio" id="strafe-option-no" class="mdl-radio__button" name="robot-strafes" value="No"> <span class="mdl-radio__label">No</span> </label>
                             <br />
                             <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="strafe-option-not-sure">
-                                <input type="radio" id="strafe-option-not-sure" class="mdl-radio__button" name="robot-strafes" value="not-sure"> <span class="mdl-radio__label">Not sure</span> </label>
+                                <input type="radio" id="strafe-option-not-sure" class="mdl-radio__button" name="robot-strafes" value="Unknown"> <span class="mdl-radio__label">Not sure</span> </label>
                         </div>
                     </div>
                     <!--<div class="question">
@@ -275,7 +275,8 @@
                     <br />
                     <div class="question">
                         <p>When did this team finish hanging?
-                            <br /> <i class="material-icons">info_outline</i> After you press Mark or Enter time, pressing the opposite button will clear your selection.</p>
+                            <br /> <i class="material-icons">info_outline</i> After you press Mark or Enter time, pressing the opposite button will clear your selection.
+                        <br /><em>Enter 0 as the time for this question if the hang was attempted but unsuccessful.</em></p>
                         <div class="espion-radio-select bar-radio-select-2 bar-radio" id="robot-dc-hang-end">
                             <div class="option">
                                 <button class="default mdl-button mdl-js-button mdl-js-ripple-effect" id="enter-time">Enter time</button>
@@ -299,23 +300,20 @@
                     <br />
                     <div class="question">
                         <p>Was the hang successful?
-                            <br /> <em>Select N/A if hang wasn't attempted</em></p>
+                            <br /> <em>Leave blank if not attempted.  Choose failed if the robot clearly began to hang (reached for the hanging pole or started to lift) but did not receive points for hanging.</em></p>
                         <div class="espion-radio-select">
-                            <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="driver-no-hang-attempt">
-                                <input type="radio" id="driver-no-hang-attempt" class="mdl-radio__button" name="driver-hang-result" value="not-applicable"> <span class="mdl-radio__label">N/A</span> </label>
-                            <br />
                             <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="driver-high-hang">
-                                <input type="radio" id="driver-high-hang" class="mdl-radio__button" name="driver-hang-result" value="high"> <span class="mdl-radio__label">High hang</span> </label>
+                                <input type="radio" id="driver-high-hang" class="mdl-radio__button" name="driver-hang-result" value="High"> <span class="mdl-radio__label">High hang</span> </label>
                             <br />
                             <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="driver-low-hang">
-                                <input type="radio" id="driver-low-hang" class="mdl-radio__button" name="driver-hang-result" value="low"> <span class="mdl-radio__label">Low hang</span> </label>
+                                <input type="radio" id="driver-low-hang" class="mdl-radio__button" name="driver-hang-result" value="Low"> <span class="mdl-radio__label">Low hang</span> </label>
                             <br />
                             <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="driver-hang-attempt-failed">
-                                <input type="radio" id="driver-hang-attempt-failed" class="mdl-radio__button" name="driver-hang-result" value="failed"> <span class="mdl-radio__label">Unsuccessful attempt</span> </label>
+                                <input type="radio" id="driver-hang-attempt-failed" class="mdl-radio__button" name="driver-hang-result" value="Failed"> <span class="mdl-radio__label">Unsuccessful attempt</span> </label>
                         </div>
                     </div>
-                    <div class="question">
-                        <p>Did this robot's partner help it hang?</p>
+                    <!--<div class="question">
+                        <p>Did this robot's partner help it hang? <br />Leave blank if you left the previous question blank.</p>
                         <div class="espion-radio-select">
                             <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="hang-assist-option-yes">
                                 <input type="radio" id="hang-assist-option-yes" class="mdl-radio__button" name="hang-assistance" value="yes"> <span class="mdl-radio__label">Yes</span> </label>
@@ -329,7 +327,7 @@
                                 <input type="radio" id="hang-assist-option-did-not-hang" class="mdl-radio__button" name="hang-assistance" value="no-hang"> <span class="mdl-radio__label">Did not hang</span> </label>
                             <br />
                         </div>
-                    </div>
+                    </div>-->
                     <div class="question">
                         <button id="submit-form" class="mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect"> Submit </button>
                         <p class="hidden" id="submit-success"><i class="material-icons">check</i> Data submitted successfully</p>

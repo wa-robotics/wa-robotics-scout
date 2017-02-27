@@ -14,7 +14,7 @@ let db = fbQueue.database();
 let q = db.ref("queue");
 console.log("I exist!");
 
-var options = {
+let options = {
     specId: 'task_1',
     numWorkers: 1
 };
@@ -114,9 +114,85 @@ function processSkills(sku,progress, tournamentID) {
         //return vexDbSkillsScores(teams,sku);
     });
 }
+
+
+let scoutingFormSubmissions = {
+    specId: 'formSubmissions',
+    numWorkers: 10
+};
+
+let sq = db.ref("scoutingFormQueue");
+
+let formQueue = new Queue(sq,scoutingFormSubmissions, (data,progress,resolve,reject) => {
+    console.log("running formqueue");
+    let tournamentId = data.tournament;
+    let orgId = data.org;
+    let scoutingInfo = data.formResponses;
+    let result = {};
+    console.log(tournamentId,orgId,scoutingInfo);
+    //get scouting info for this team, if it exists
+    fbQueue.database().ref("scouting/" + orgId + "/" + tournamentId + "/" + scoutingInfo.Team).once("value").then(function (snapshot) {
+        let currentTeamData = snapshot.val();
+        console.log("currentTeamData",currentTeamData);
+        if (currentTeamData != null) {
+            for (let prop in scoutingInfo) {
+                if (scoutingInfo.hasOwnProperty(prop)) {
+                    if (prop === "Team") {
+                        result[prop] = scoutingInfo[prop];
+                    } else {
+                        if (prop === "Auton play" || prop === "Hang" || prop === "Auton start time" || prop === "Auton swing (pts)" || prop === "Last scouting in" ||
+                            prop === "Cubes held" || prop === "Stars held" || prop === "Sturdiness of scoring device" || prop === "Scores every (s)" ||
+                            prop === "Drops objects") {
+                            console.log("prop",prop);
+                            console.log("currentTeamData[prop]",currentTeamData[prop]);
+                            console.log("scoutingInfo[prop]",scoutingInfo[prop]);
+                            //console.log("scoutingInfo[prop].indexOf('Unknown in')",scoutingInfo[prop].indexOf("Unknown in"));
+                            if (typeof scoutingInfo[prop] === "string" && scoutingInfo[prop].indexOf("Unknown in") > -1) {
+                                result[prop] = currentTeamData[prop];
+                            } else {
+                                result[prop] = currentTeamData[prop] + " | " + scoutingInfo[prop];
+                            }
+                        } else {
+                            result[prop] = scoutingInfo[prop];
+                        }
+                    }
+                }
+            }
+        } else {
+            console.log("inside else");
+            for (let prop in scoutingInfo) {
+                if (scoutingInfo.hasOwnProperty(prop)) {
+                    console.log(prop);
+                    if (prop === "Team") {
+                        result[prop] = scoutingInfo[prop];
+                    } else if (prop === "Auton play" || prop === "Hang" || prop === "Auton start time" || prop === "Auton swing (pts)" || prop === "Last scouting in" ||
+                        prop === "Cubes held" || prop === "Stars held" || prop === "Sturdiness of scoring device" || prop === "Scores every (s)" ||
+                        prop === "Drops objects") {
+                        if (prop === "Hang" && scoutingInfo[prop].indexOf("Unknown in") > -1) {
+                            result[prop] = "";
+                        } else {
+                            result[prop] = scoutingInfo[prop];
+                        }
+                    } else {
+                        result[prop] = scoutingInfo[prop];
+                    }
+                }
+            }
+        }
+        return result;
+
+    }).then((result) => {
+        console.log("result",result);
+        return fbQueue.database().ref("scouting/" + orgId + "/" + tournamentId + "/" + scoutingInfo.Team).set(result);
+    }).then(resolve)
+        .catch((e) => console.error("server error:",e.code,":",e.message));
+
+});
+
 var queue = new Queue(q, options, function(data, progress, resolve, reject) {
     let sku = data.sku;
     let tournamentID = data.tournament;
+    console.log("running process skills");
     processSkills(sku,progress, tournamentID).then(resolve);
 
 });

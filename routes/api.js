@@ -330,7 +330,7 @@ router.post('/pretournament/fetch', function (req, res, next) {
         let result = [];
         for (let team in skillsData) {
             if (skillsData.hasOwnProperty(team) && team !== "dateCollected") {
-                result.push([skillsData[team].team,null,skillsData[team].maxTotal,skillsData[team].maxRobot,skillsData[team].maxProg,[],[],[],[],[],[],[],[],[],[]]);
+                result.push([skillsData[team].team,null,skillsData[team].maxTotal,skillsData[team].maxRobot,skillsData[team].maxProg,[4],[4],[4],[4],[4],[4],[4],[4],[4],[4]]);
             }
         }
 

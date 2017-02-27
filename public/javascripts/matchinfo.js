@@ -35,16 +35,10 @@ function processResults (team,alliance,value) {
             currentTeamInfo = value;
 
             for (var prop in value) {
-                console.log(value);
-                console.log("prop",prop);
-                if (prop === "robot" || prop === "hang" || prop === "auton") {
-                    for (var nestedProp in value[prop]) {
-                        console.log("nestedProp",nestedProp);
-                        propertyValue = cleanNames[prop + "-" + nestedProp];
-                        output += '<tr><td>' + propertyValue + '</td><td>' + value[prop][nestedProp] + '</td></tr>';
-                    }
-                } else {
-                    propertyValue = cleanNames[prop];
+                if (value.hasOwnProperty(prop) && prop !== "Team") {
+                    console.log(value);
+                    console.log("prop", prop);
+                    propertyValue = prop;
                     output += '<tr><td>' + propertyValue + '</td><td>' + value[prop] + '</td></tr>';
                 }
             }
@@ -160,14 +154,14 @@ function scoutingFormDataFetch(teams,elim) {
         }
     }
     var team = teams.pop();
-    firebase.database().ref('/scouting/' + userDefaults.org + '/' + userDefaults.tournament).orderByChild("team").equalTo(team).limitToLast(1).once('value').then(function (snapshot) {
+    firebase.database().ref('/scouting/' + userDefaults.org + '/' + userDefaults.tournament + "/" + team).once('value').then(function (snapshot) {
 
         //getRankInfo(team);
         if (snapshot.val() !== null) {
             scoutInfo = snapshot.val();
             console.log(scoutInfo);
-            console.log(scoutInfo[Object.keys(scoutInfo)[0]]);
-            processResults(team,allianceColor,scoutInfo[Object.keys(scoutInfo)[0]]);
+            console.log(scoutInfo);
+            processResults(team,allianceColor,scoutInfo);
         } else {
             processResults(team,allianceColor,null);
         }
