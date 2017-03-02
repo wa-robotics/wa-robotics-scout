@@ -286,7 +286,17 @@ router.post('/scout/:org/:tournament/:qmatchnum', function (req,res,next) {
     getScoutingInfoMatchFb(req,res, userToken);
 });*/
 
+function getTournamentScoutingInfo(db,org,tourney) {
+    return db.ref("/scouting/" + org + "/" + tourney).once("value");
+}
 
+function getScoutingProp(prop, team, scoutingInfo) {
+    if (Object.keys(scoutingInfo).indexOf(team) > -1) { //if there's scouting info for this team
+        return scoutingInfo[team][prop];
+    }
+    return "";
+
+}
 //fetches all pretournament scouting data to be shown on team list page
 router.post('/pretournament/fetch', function (req, res, next) {
     const token = req.body.token;
@@ -328,13 +338,39 @@ router.post('/pretournament/fetch', function (req, res, next) {
     }).then(function(snapshot) {
         let skillsData = snapshot.val();
         let result = [];
-        for (let team in skillsData) {
-            if (skillsData.hasOwnProperty(team) && team !== "dateCollected") {
-                result.push([skillsData[team].team,null,skillsData[team].maxTotal,skillsData[team].maxRobot,skillsData[team].maxProg,[4],[4],[4],[4],[4],[4],[4],[4],[4],[4]]);
-            }
-        }
 
-        res.send(result);
+        /*             {"title": "Max CS" },
+         {"title": "Max RS"},
+         {"title": "Max PS" },
+         {"title": "Scoring" },
+         {"title": "Scores in" },
+         {"title": "Scores every (s)" },
+         {"title": "Claw sturdiness" },
+         {"title": "Stars held" },
+         {"title": "Cubes held" },
+         {"title": "Drops objects" },
+         {"title": "Auton. swing" },
+         {"title": "Auton play." },
+         {"title": "Hang" },*/
+        //get scouting info for teams
+        getTournamentScoutingInfo(db,orgId,tournament).then(function (scoutingInfoSnapshot) {
+            let scoutingInfo = scoutingInfoSnapshot.val();
+            console.log(Object.keys(scoutingInfo),scoutingInfo["88E"]);
+            //skillsData is based off of team list for tournament, so this includes all the teams at the tournament
+            for (let team in skillsData) {
+                if (skillsData.hasOwnProperty(team) && team !== "dateCollected") {
+                    result.push([skillsData[team].team,null,skillsData[team].maxTotal,skillsData[team].maxRobot,skillsData[team].maxProg,[getScoutingProp("Last scouted in",team, scoutingInfo)],[getScoutingProp("Scoring device(s)",team, scoutingInfo)],
+                        [getScoutingProp("Scores in",team, scoutingInfo)],[getScoutingProp("Scores every (s)",team, scoutingInfo)],
+                        [getScoutingProp("Sturdiness of scoring device",team, scoutingInfo)],[getScoutingProp("Stars held",team, scoutingInfo)],
+                        [getScoutingProp("Cubes held",team, scoutingInfo)],[getScoutingProp("Drops objects",team, scoutingInfo)],[getScoutingProp("Auton swing (pts)",team, scoutingInfo)],[getScoutingProp("Auton play",team, scoutingInfo)],
+                        [getScoutingProp("Hang",team, scoutingInfo)]]);
+                }
+            }
+            console.log("result is",result);
+            res.send(result);
+        });
+
+
     }).catch(function (error) {
         console.error("Server error: " + error.message);
         res.status(500);
@@ -388,12 +424,13 @@ router.post('/skills/pretournament/refresh', function (req, res, next) {
         if (snapshot.val() !== null) {
             let lastCollected = new Date(lastCollectedString);
             console.log(lastCollected.toString());
-            let nextAllowableRefresh = new Date();
-            nextAllowableRefresh.setDate(lastCollected.getDate() + 1);
+            let nextAllowableRefresh = lastCollected.setDate(lastCollected.getDate() + 1);
+            console.log("nar to string",nextAllowableRefresh.toString());
+            //nextAllowableRefresh.setDate(lastCollected.getDate() + 1);
             let now = new Date();
-            console.log(now.getDate());
-            console.log(nextAllowableRefresh.getDate());
-            console.log(now.getDate() > nextAllowableRefresh.getDate());
+            //console.log("now",now.getDate(),now.toString());
+            //console.log("nar",nextAllowableRefresh.getDate(),nextAllowableRefresh.toString());
+            console.log(now > nextAllowableRefresh);
             if (now > nextAllowableRefresh) { //OK to refresh
                 console.log("inside OK to refresh");
                 return true;
