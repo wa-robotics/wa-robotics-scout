@@ -119,10 +119,10 @@
       scoredObjsQuestionEnabled = false;
       numStarGroupsEntered = 0;
       if (allianceSelected === "blue") { //blue alliance selected; make sure blue field is displayed and enabled
-          $('#field-image-blue').removeClass('disabled hidden');
+          $('#field-image-red').removeClass('disabled hidden');
       }
       else { //act on red; blue is hidden
-          $('#field-image-red').removeClass('disabled hidden');
+          $('#field-image-blue').removeClass('disabled hidden');
       }
       $('#reset-score-locs, #undo-last-score-loc-input').addClass('soft-hidden');
       $('#obj-locs-response-done').addClass('hidden');
@@ -193,7 +193,39 @@
       $('.img-responsive.blue-alliance, .img-responsive.red-alliance').on("click", scoringLocationsImageClicked);
       $('#reset-score-locs').on("click", resetScoredObjs);
       $('#undo-last-score-loc-input').on("click", undoLastScoredObj);
+
+      //auto-update max stars/cubes held input when typical stars/cubes held entered
+      $('#driver-cubes-held').change(function(e) {
+          $('#driver-cubes-held-max').val($('#driver-cubes-held').val());
+          $('#driver-cubes-held-max').parent().addClass("is-dirty");
+
+      });
+
+      $('#driver-stars-held').change(function(e) {
+          $('#driver-stars-held-max').val($('#driver-stars-held').val());
+          $('#driver-stars-held-max').parent().addClass("is-dirty");
+      });
+
+      $("#auton-action-phrases").on("click","li",addAutonPhrase);
+
+      $("input[name='offline-alliance']").change(function(e) {
+         allianceSelected = $(this).val();
+         updateFieldImage();
+      });
   });
+
+  function addAutonPhrase(e) {
+      console.log($(this).text());
+      var spacer = ", ";
+      if ($(this).attr("data-no-comma") === "true") {
+          console.log("no comma");
+          spacer = " ";
+      }
+      var autonActionsSelector = "#auton-actions";
+      var currentText = $(autonActionsSelector).val();
+      $(autonActionsSelector).val(currentText + $(this).text() + spacer);
+      $(autonActionsSelector).addClass("is-dirty");
+  }
 
   function updateAutonWinnerDisplay(winner) {
       "use strict";
@@ -602,7 +634,7 @@
       $('input[type="number"]').each(function () {
           formAnswers.text[$(this).attr('id')] = ($(this).val());
       });
-      $('input[type="text"]').each(function () {
+      $('input[type="text"], input[type="textarea"]').each(function () {
           formAnswers.text[$(this).attr('id')] = ($(this).val());
       });
       $('input[type="radio"]:checked').each(function () {
@@ -761,6 +793,7 @@
 
       let finalResults = {
           "Team":r.team,
+          "scoredObjs":formAnswers.scoredObjs,
           "Last scouted in": r.match,
           "Scores in":"",
           "Scores every (s)":"",

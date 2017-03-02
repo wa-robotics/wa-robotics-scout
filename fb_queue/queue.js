@@ -121,7 +121,82 @@ let scoutingFormSubmissions = {
     numWorkers: 10
 };
 
+function classifyZone(y) {
+    if (y <= 207 && y > 112.75) {
+        return 1;
+    } else if (y <= 112.75 && y >= 0) {
+        return 2;
+    } else {
+        return 0;
+    }
+}
+
+function parseScoredObjs(objs) {
+    if (objs.length <= 1) {
+        return -1; //not enough data
+    } else {
+        let lastRefTime = objs[0].time;
+        let times = [lastRefTime];
+        let numNear = 0;
+        let numFar = 0;
+        let numNone = 0;
+        //near zone <= 207 and > 112.75
+        //far zone <= 112.75 and > 0
+        let zone;
+
+        for (let i = 0; i < objs.length; i++) {
+            if (i > 0) {
+                if ((objs[i].time - lastRefTime) / 1000 > 2.5) { //the idea here is that a typical robot only scores every 3-6 seconds.  So if there's a tap (and
+                                                                 //  hence, a ScoredObject in objs) for each object scored, there would only be one discrete scoring action when there's a reasonable length of time 2 scored objects
+                    console.log("obj, lastrt",objs[i],lastRefTime);
+                    lastRefTime = objs[i].time;
+                    times.push(lastRefTime);
+                }
+                zone = classifyZone(objs[i].y);
+                if (zone === 1) {
+                    numNear++;
+                } else if (zone === 0) {
+                    numNone++;
+                } else { //far
+                    numFar++;
+                }
+            } else {
+                zone = classifyZone(objs[i].y);
+                if (zone === 1) {
+                    numNear++;
+                } else if (zone === 0) {
+                    numNone++;
+                } else { //far
+                    numFar++;
+                }
+            }
+        }
+
+        let timeSum = 0;
+        let numTimes = 0;
+        for (let j = 1; j < times.length; j++) {
+            timeSum += (times[j] - times[j - 1]) / 1000;
+            numTimes++;
+        }
+        return {
+            avgScoreTime: timeSum / numTimes,
+            percentNear: numNear / (numNone + numNear + numFar) * 100,
+            percentFar: numFar / (numNone + numNear + numFar) * 100,
+            percentNone: numNone / (numNone + numNear + numFar)*100,
+            numScores: numNone + numNear + numFar
+        }
+    }
+}
+
 let sq = db.ref("scoutingFormQueue");
+
+//from MDN - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/round
+function round(number, precision) {
+    var factor = Math.pow(10, precision);
+    var tempNumber = number * factor;
+    var roundedTempNumber = Math.round(tempNumber);
+    return roundedTempNumber / factor;
+}
 
 let formQueue = new Queue(sq,scoutingFormSubmissions, (data,progress,resolve,reject) => {
     console.log("running formqueue");
@@ -152,6 +227,13 @@ let formQueue = new Queue(sq,scoutingFormSubmissions, (data,progress,resolve,rej
                             } else {
                                 result[prop] = currentTeamData[prop] + " | " + scoutingInfo[prop];
                             }
+                        } else if (prop === "scoredObjs") {
+                            console.log("inside scoredObjs else");
+                            let scoringInfo = parseScoredObjs(scoutingInfo.scoredObjs);
+                            console.log(scoringInfo);
+                            result["Scores every (s)"] = currentTeamData["Scores every (s)"] + " | " + round(scoringInfo.avgScoreTime,2);
+                            result["Scores in"] = currentTeamData["Scores in"] + " | " + round(scoringInfo.percentFar,1) + "% far, " + round(scoringInfo.percentNear,1) + "% near, " +
+                                round(scoringInfo.percentNone,1) + "% neutral zone (based on " + scoringInfo.numScores + " objects)";
                         } else {
                             result[prop] = scoutingInfo[prop];
                         }
@@ -173,6 +255,13 @@ let formQueue = new Queue(sq,scoutingFormSubmissions, (data,progress,resolve,rej
                         } else {
                             result[prop] = scoutingInfo[prop];
                         }
+                    } else if (prop === "scoredObjs") {
+                        console.log("inside scoredObjs else");
+                        let scoringInfo = parseScoredObjs(scoutingInfo.scoredObjs);
+                        console.log(scoringInfo);
+                        result["Scores every (s)"] = round(scoringInfo.avgScoreTime,2);
+                        result["Scores in"] = round(scoringInfo.percentFar,1) + "% far, " + round(scoringInfo.percentNear,1) + "% near, " +
+                            round(scoringInfo.percentNone,1) + "% neutral zone (based on " + scoringInfo.numScores + " objects)";
                     } else {
                         result[prop] = scoutingInfo[prop];
                     }

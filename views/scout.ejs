@@ -44,7 +44,14 @@
                             <label class="mdl-textfield__label" for="manual-match-num">Match</label> <span class="mdl-textfield__error">Enter a positive integer greater than 0</span> </div>
                         <div class="mdl-textfield mdl-js-textfield" id="container-manual-team-entry">
                             <input class="mdl-textfield__input" type="text" pattern="^[0-9]{1,5}[a-zA-Z]?$" id="other-team-num">
-                            <label class="mdl-textfield__label" for="other-team-num">Team</label> <span class="mdl-textfield__error">Enter a valid team number</span> </div>
+                            <label class="mdl-textfield__label" for="other-team-num">Team</label> <span class="mdl-textfield__error">Enter a valid team number</span>
+                            <div class="espion-radio-select">
+                                <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="offline-alliance-red">
+                                    <input type="radio" id="offline-alliance-red" class="mdl-radio__button" name="offline-alliance" value="red"> <span class="mdl-radio__label">Red</span> </label>
+                                <br />
+                                <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="offline-alliance-blue">
+                                    <input type="radio" id="offline-alliance-blue" class="mdl-radio__button" name="offline-alliance" value="blue"> <span class="mdl-radio__label">Blue</span> </label>
+                            </div></div>
                     </div>
                     <div class="question">
                         <p>When does this team's autonomous play start?
@@ -76,10 +83,11 @@
                     <div class="question espion-text">
                         <p>What was the point swing caused by this team's actions in autonomous? (For this team only, <em>not</em> the whole alliance.)
                             <br /> <em>Don't count the objects that are already scored.  Give the point swing caused by this team's actions
-                                (i.e., a cube moved from one far zone to the other would be entered as 8 here.)</em></p>
+                                (i.e., a cube moved from one far zone to the other would be entered as 8 here.)  If a team knocks objects onto their side of the field
+                            the point swing is negative (e.g. , a red robot knocks a star off the fence onto the same side of the field (where red's hanging pole is); this would be a point swing of -1)</em></p>
                         <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="container-auton-pts-scored">
-                            <input class="mdl-textfield__input" type="number" pattern="-?[0-9]*(\.[0-9]+)?" id="auton-pts-scored">
-                            <label class="mdl-textfield__label" for="auton-pts-scored">Points scored</label> <span class="mdl-textfield__error">Enter a positive integer greater than 0</span> </div>
+                            <input class="mdl-textfield__input" type="number" id="auton-pts-scored">
+                            <label class="mdl-textfield__label" for="auton-pts-scored">Points scored</label> <span class="mdl-textfield__error">Enter an integer</span> </div>
                     </div>
 <!--                    <div class="question">
                         <p>Did this team ever do any of the following during autonomous?
@@ -102,56 +110,32 @@
                         </div>
                     </div>-->
                     <div class="question">
-                        <p>What does this team do during autonomous?
-                            <br /> <em>Drag the items from the Possible Plays section to the Play section to describe the team's autonomous actions in order.  You can use as many of the
-                            other options as you need to enter actions not already listed here.</em></p>
-                        <script src="https://rubaxa.github.io/Sortable/Sortable.js"></script>
+                        <p>What does this team do during autonomous? Please provide: starting tile, object(s) picked up, where on fence those objects are scored (the left starting tile is always farthest from the hanging
+                            pole on the same side of the field), and details if a robot hangs (time, path it takes, low/high)
+                            <br /> <em></em></p>
+                        <div class="mdl-textfield mdl-js-textfield">
+                            <textarea class="mdl-textfield__input" type="text" rows= "3" id="auton-actions" ></textarea>
+                        </div>
 
-                        <strong>This team's autonomous play</strong>
-                        <ul id="simpleList2" class="list-group mdl-list">
-                            <li class="list-group-item"><i class="material-icons">drag_handle</i> Play started</li>
+                        <p>Tap to use a phrase:</p>
+                        <ul id="auton-action-phrases">
+                            <li>Started on left tile</li>
+                            <li>Started on right tile</li>
+                            <li>Picked up cube</li>
+                            <li data-no-comma="true">Knocked stars off</li>
+                            <li data-no-comma="true">Went to</li>
+                            <li>left fence</li>
+                            <li>middle fence</li>
+                            <li>right fence</li>
+                            <li>midfield</li>
+                            <li>Picked up back stars</li>
+                            <li data-no-comma="true">Scored cube</li>
+                            <li data-no-comma="true">Scored stars</li>
+                            <li data-no-comma="true">on</li>
+                            <li>Hung low</li>
+                            <li>Hung high</li>
                         </ul>
 
-                        <strong>Common autonomous actions</strong>
-                        <ul id="simpleList1" class="list-group mdl-list">
-                            <li class="list-group-item"><i class="material-icons">drag_handle</i> Started on left tile</li>
-                            <li class="list-group-item"><i class="material-icons">drag_handle</i> Started on right tile</li>
-                            <li class="list-group-item"><i class="material-icons">drag_handle</i> Knocked stars off left fence</li>
-                            <li class="list-group-item"><i class="material-icons">drag_handle</i> Knocked stars off middle fence</li>
-                            <li class="list-group-item"><i class="material-icons">drag_handle</i> Knocked stars off right fence</li>
-                            <li class="list-group-item"><i class="material-icons">drag_handle</i> Picked up midfield cube</li>
-                            <li class="list-group-item"><i class="material-icons">drag_handle</i> Scored midfield cube</li>
-                            <li class="list-group-item"><i class="material-icons">drag_handle</i> Picked up stars between starting tiles</li>
-                            <li class="list-group-item"><i class="material-icons">drag_handle</i> Scored stars between starting tiles</li>
-                            <li class="list-group-item"><i class="material-icons">drag_handle</i> Picked up corner star (close to starting tile)</li>
-                            <li class="list-group-item"><i class="material-icons">drag_handle</i> Picked up corner star (far from starting tile)</li>
-                            <li class="list-group-item"><i class="material-icons">drag_handle</i> Scored corner star (close to starting tile)</li>
-                            <li class="list-group-item"><i class="material-icons">drag_handle</i> Scored corner star (far from starting tile)</li>
-                            <li class="list-group-item"><i class="material-icons">drag_handle</i> Hung high</li>
-                            <li class="list-group-item"><i class="material-icons">drag_handle</i> Hung low</li>
-
-                        </ul>
-
-
-
-                        <strong>Action not listed above (drag to appropriate place among other autonomous plays for this robot)</strong>
-                        <ul id="otherFactory" class="list-group mdl-list">
-                            <li class="list-group-item"><i class="material-icons">drag_handle</i>
-                                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="container-auton-actions-other">
-                                    <input class="mdl-textfield__input" type="text" id="auton-actions-other">
-                                    <label class="mdl-textfield__label" for="auton-actions-other">Other</label> </div>
-
-                        </ul>
-
-                        <script>
-                            // Simple list
-                            Sortable.create(simpleList1, { group:{name: "auton-play-order", pull:true,put:true},
-                            handle: ".material-icons",animation:150});
-                            Sortable.create(simpleList2, { group:{name: "auton-play-order", pull:true,put:true },
-                                handle: ".material-icons",animation:150});
-                            Sortable.create(otherFactory, { group:{name: "auton-play-order", pull:"clone",put:false },
-                                handle: ".material-icons",animation:150});
-                        </script>
                     </div>
                     <p class="espion-section-header">Driver control</p>
                     <div class="question">
@@ -168,6 +152,22 @@
 
                             <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="robot-type-none-of-these">
                                 <input type="checkbox" id="robot-type-none-of-these" class="mdl-checkbox__input"> <span class="mdl-checkbox__label">Didn't do any of these</span> </label>
+                        </div>
+                    </div>
+
+                    <div class="question">
+                        <p>Where does this robot score stars and cubes? (Please keep reading for detailed assistance.)
+                            <br /><em>Tap where the star or cube lands - at the very least the zone it appeared to land in.  Press Undo to remove an unintentional tap(s).  Press Reset This Question to start over.  For multiple stars or cubes scored <strong>together</strong>, tap once for each object shot.  Keep answering until you see "Got it!"
+                                Once you get to 5/5 entered, a "Got it!" message will appear 2.5 seconds after your last tap.  You can press Undo to remove your last tap even in the 5/5 group, and the question won't show the "Got it!" message until 2.5 seconds after your <strong>next</strong> tap.  Once "Got it!" appears,
+                                you can't undo anymore.  [For the technically curious: your taps will be regrouped by time when this submission is processed, so don't fret about the group count listed here for this question.]</em></p>
+                        <p id="select-team-first"><i class="material-icons">error_outline</i> Select a team in the first question to begin</p> <img class="img-responsive blue-alliance hidden" id="field-image-blue" src="https://wa-robotics-scout-web-assets.firebaseapp.com/field-blue.png" /> <img class="img-responsive red-alliance hidden" id="field-image-red" src="https://wa-robotics-scout-web-assets.firebaseapp.com/field-red.png" />
+                        <div id="obj-locs-response-done" class="hidden"><i class="material-icons">done</i> Got it!</div>
+                        <div id="obj-locs-response-info">
+                            <button class="mdl-button mdl-js-button mdl-js-ripple-effect soft-hidden" id="reset-score-locs"><i class="material-icons">clear</i> Reset this question</button>
+                            <button class="mdl-button mdl-js-button mdl-js-ripple-effect soft-hidden" id="undo-last-score-loc-input"><i class="material-icons">undo</i> Undo</button>
+                            <div class="hidden" id="container-num-locs-entered">
+                                <p><span id="num-locs-entered">0</span>/5 entered</p>
+                            </div>
                         </div>
                     </div>
 
@@ -204,19 +204,25 @@
                     </div>
 
                     <div class="question espion-text">
-                        <p>How many stars does this robot typically hold at a time?
+                        <p>How many stars does this robot hold at a time?
                             <br /> <em>Enter 0 if it doesn't hold stars.</em></p>
-                        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="driver-stars-held">
+                        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="container-stars-held">
                             <input class="mdl-textfield__input" type="number" id="driver-stars-held">
-                            <label class="mdl-textfield__label" for="driver-stars-held">Stars held</label> <span class="mdl-textfield__error">Enter a positive integer greater than 0</span> </div>
+                            <label class="mdl-textfield__label" for="driver-stars-held">Typical stars held</label> <span class="mdl-textfield__error">Enter a positive integer greater than 0</span> </div>
+                        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="container-stars-held-max">
+                            <input class="mdl-textfield__input" type="number" id="driver-stars-held-max">
+                            <label class="mdl-textfield__label" for="driver-stars-held-max">Max stars held</label> <span class="mdl-textfield__error">Enter a positive integer greater than 0</span> </div>
                     </div>
 
                     <div class="question espion-text">
-                        <p>How many cubes does this robot typically hold at a time?
+                        <p>How many cubes does this robot hold at a time?
                             <br /> <em>Enter 0 if it doesn't hold cubes.</em></p>
                         <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="container-cubes-held">
                             <input class="mdl-textfield__input" type="number" id="driver-cubes-held">
-                            <label class="mdl-textfield__label" for="driver-cubes-held">Cubes held</label> <span class="mdl-textfield__error">Enter a positive integer greater than 0</span> </div>
+                            <label class="mdl-textfield__label" for="driver-cubes-held">Typical cubes held</label> <span class="mdl-textfield__error">Enter a positive integer greater than 0</span> </div>
+                        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="container-cubes-held-max">
+                            <input class="mdl-textfield__input" type="number" id="driver-cubes-held-max">
+                            <label class="mdl-textfield__label" for="driver-cubes-held-max">Max cubes held</label> <span class="mdl-textfield__error">Enter a positive integer greater than 0</span> </div>
                     </div>
 
                     <div class="question">
@@ -232,21 +238,7 @@
                                 <input type="radio" id="strafe-option-not-sure" class="mdl-radio__button" name="robot-strafes" value="Unknown"> <span class="mdl-radio__label">Not sure</span> </label>
                         </div>
                     </div>
-                    <!--<div class="question">
-                        <p>Where does this robot score stars and cubes? (Please keep reading for detailed assistance.)
-                            <br /><em>Tap where the star or cube lands.  Press Undo to remove an unintentional tap(s).  Press Reset This Question to start over.  For multiple stars or cubes shot <strong>together</strong>, tap once for each object shot.  Keep answering until you see "Got it!"
-               Once you get to 5/5 entered, a "Got it!" message will appear 2.5 seconds after your last tap.  You can press Undo to remove your last tap even in the 5/5 group, and the question won't show the "Got it!" message until 2.5 seconds after your <strong>next</strong> tap.  Once "Got it!" appears,
-               you can't undo anymore.  [For the technically curious: your taps will be regrouped by time when this submission is processed, so don't fret about the group count listed here for this question.]</em></p>
-                        <p id="select-team-first"><i class="material-icons">error_outline</i> Select a team in the first question to begin</p> <img class="img-responsive red-alliance hidden" id="field-image-red" src="https://wa-robotics-scout-web-assets.firebaseapp.com/field-blue.png" /> <img class="img-responsive blue-alliance hidden" id="field-image-blue" src="https://wa-robotics-scout-web-assets.firebaseapp.com/field-red.png" />
-                        <div id="obj-locs-response-done" class="hidden"><i class="material-icons">done</i> Got it!</div>
-                        <div id="obj-locs-response-info">
-                            <button class="mdl-button mdl-js-button mdl-js-ripple-effect soft-hidden" id="reset-score-locs"><i class="material-icons">clear</i> Reset this question</button>
-                            <button class="mdl-button mdl-js-button mdl-js-ripple-effect soft-hidden" id="undo-last-score-loc-input"><i class="material-icons">undo</i> Undo</button>
-                            <div class="hidden" id="container-num-locs-entered">
-                                <p><span id="num-locs-entered">0</span>/5 entered</p>
-                            </div>
-                        </div>
-                    </div>-->
+
                     <div class="question">
                         <p>When does this team hang during driver control?
                             <br /> <em>If you pressed <strong>Start</strong> when the driver control period began, then press <strong>Mark time</strong>
