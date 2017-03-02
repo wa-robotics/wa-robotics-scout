@@ -26,6 +26,7 @@ let skillsDataFetchFbApp = admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
     databaseURL: "https://wa-robotics-scout.firebaseio.com",
     databaseAuthVariableOverride: {
+        canReadTourneySku: true,
         uid: "pretourney-skills-fetch"
     }
 },"PRETOURNEY_SKILLS_FETCH");
@@ -224,8 +225,8 @@ function getTeamsSkillsScores(res,sku,tournamentID) {
                 res.set("Content-Type","application/json");
                 let processedResults = processSkillsScores(result);
                 const db = skillsDataSaveFbApp.database();
-                db.ref("/pretourneySkillsData/" + tournamentID).set(processedResults)
-                    .then(() => { return db.ref("/tournaments/" + tournamentID + "/pretourneySkillsLastUpdated").set(processedResults.dateCollected); })
+                db.ref("/pretourneySkillsData/" + sku).set(processedResults)
+                    .then(() => { return db.ref("/tournaments/" + sku + "/pretourneySkillsLastUpdated").set(processedResults.dateCollected); })
                     .then(() => res.send({status:1,message:"Operation completed successfully"}))
                     .catch((e)=> console.log(e));
             }, (e)=> console.log(e)
@@ -314,17 +315,22 @@ router.post('/pretournament/fetch', function (req, res, next) {
         console.log(snapshot.val());
         let authResult = snapshot.val();
         if (authResult !== null) {
-            return db.ref("/pretourneySkillsData/" + tournament).once("value");
+            console.log("inside authresult != null",authResult);
+            return db.ref("/tournaments/" + tournament + "/sku").once("value");
         } else {
             Promise.reject("The user is not authorized to perform this action: ERR_USER_NOT_AUTHORIZED");
         }
         return true;
     }).then(function(snapshot) {
+        console.log(322,tournament);
+        let tournamentSku = snapshot.val();
+        return db.ref("/pretourneySkillsData/" + tournamentSku).once("value");
+    }).then(function(snapshot) {
         let skillsData = snapshot.val();
         let result = [];
         for (let team in skillsData) {
-            if (skillsData.hasOwnProperty(team)) {
-                result.push([skillsData[team].team,null,skillsData[team].maxTotal,skillsData[team].maxRobot,skillsData[team].maxProg]);
+            if (skillsData.hasOwnProperty(team) && team !== "dateCollected") {
+                result.push([skillsData[team].team,null,skillsData[team].maxTotal,skillsData[team].maxRobot,skillsData[team].maxProg,[4],[4],[4],[4],[4],[4],[4],[4],[4],[4]]);
             }
         }
 
@@ -340,6 +346,7 @@ router.post('/skills/pretournament/refresh', function (req, res, next) {
     const code = req.params.orgauth;
     const token = req.body.token;
     const tournament = req.body.tournament;
+    let tournamentSku;
     //console.log("token",req.body.toString());
     let orgId;
     let uid;
@@ -365,12 +372,16 @@ router.post('/skills/pretournament/refresh', function (req, res, next) {
         console.log(snapshot.val());
         let authResult = snapshot.val();
         if (authResult !== null) {
-            return db.ref("/pretourneySkillsData/" + tournament + "/dateCollected").once("value");
+            return db.ref("/tournaments/" + tournament + "/sku").once("value");
         } else {
             Promise.reject("The user is not authorized to perform this action: ERR_USER_NOT_AUTHORIZED");
         }
         return false;
-    }).then((snapshot) => {
+    }).then((snapshot) =>{
+            tournamentSku = snapshot.val();
+            return db.ref("/pretourneySkillsData/" + tournamentSku + "/dateCollected").once("value");
+        }
+    ).then((snapshot) => {
         console.log("datecollected",snapshot.val());
         let lastCollectedString = snapshot.val();
         console.log(lastCollectedString);
@@ -382,10 +393,10 @@ router.post('/skills/pretournament/refresh', function (req, res, next) {
             let now = new Date();
             console.log(now.getDate());
             console.log(nextAllowableRefresh.getDate());
-            console.log(now.getDate() > nextAllowableRefresh.getDate())
+            console.log(now.getDate() > nextAllowableRefresh.getDate());
             if (now > nextAllowableRefresh) { //OK to refresh
                 console.log("inside OK to refresh");
-                return db.ref("/tournaments/" + tournament + "/sku").once("value");
+                return true;
             } else {
                 //Promise.reject("A refresh is not authorized at this time");
                 console.log("not OK to refresh");
@@ -393,14 +404,17 @@ router.post('/skills/pretournament/refresh', function (req, res, next) {
                 //return db.ref("/tournaments/" + tournament + "/sku").once("value");
             }
         } else { //no data exists yet, so continue
-            return db.ref("/tournaments/" + tournament + "/sku").once("value");
+            console.log("return true else");
+            return true;
         }
 
-    }).then(function(snapshot) {
-        console.log(snapshot);
-        if (snapshot) {
-            let tournamentSku = snapshot.val();
-            return getTeamsSkillsScores(res, tournamentSku, tournament);
+    }).then(function(refreshOK) {
+        console.log("refreshOK:",refreshOK);
+        if (refreshOK) {
+            return db.ref("/queue/tasks").push({
+                sku: tournamentSku,
+                tournament: tournament
+            });
         } else {
             res.send({status:0,message:"A refresh is not authorized at this time"});
         }

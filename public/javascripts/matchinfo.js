@@ -20,7 +20,7 @@ var cleanNames = {
     "team":"The team scouted (again)",
     "timestamp":"Ignore this value",
     "user":"Ignore this value"
-}
+};
 
 function processResults (team,alliance,value) {
     console.log(team,alliance,value);
@@ -35,16 +35,10 @@ function processResults (team,alliance,value) {
             currentTeamInfo = value;
 
             for (var prop in value) {
-                console.log(value);
-                console.log("prop",prop);
-                if (prop === "robot" || prop === "hang" || prop === "auton") {
-                    for (var nestedProp in value[prop]) {
-                        console.log("nestedProp",nestedProp);
-                        propertyValue = cleanNames[prop + "-" + nestedProp];
-                        output += '<tr><td>' + propertyValue + '</td><td>' + value[prop][nestedProp] + '</td></tr>';
-                    }
-                } else {
-                    propertyValue = cleanNames[prop];
+                if (value.hasOwnProperty(prop) && prop !== "Team") {
+                    console.log(value);
+                    console.log("prop", prop);
+                    propertyValue = prop;
                     output += '<tr><td>' + propertyValue + '</td><td>' + value[prop] + '</td></tr>';
                 }
             }
@@ -124,18 +118,6 @@ function test() {
     console.log("haiiii");
 }
 
-function firebaseInit() {
-    firebase.initializeApp(config);
-}
-var config = {
-    apiKey: "AIzaSyAIvK9HrI4P7MJlzjOHmcWeja2BPEInuTo",
-    authDomain: "wa-robotics-scout.firebaseapp.com",
-    databaseURL: "https://wa-robotics-scout.firebaseio.com",
-    storageBucket: "wa-robotics-scout.appspot.com",
-    messagingSenderId: "490870467180"
-};
-firebaseInit();
-
 function renderMatchInfo(data) {
     console.log(data);
     processResults(data);
@@ -172,14 +154,14 @@ function scoutingFormDataFetch(teams,elim) {
         }
     }
     var team = teams.pop();
-    firebase.database().ref('/scouting/' + userDefaults.org + '/' + userDefaults.tournament).orderByChild("team").equalTo(team).limitToLast(1).once('value').then(function (snapshot) {
+    firebase.database().ref('/scouting/' + userDefaults.org + '/' + userDefaults.tournament + "/" + team).once('value').then(function (snapshot) {
 
         //getRankInfo(team);
         if (snapshot.val() !== null) {
             scoutInfo = snapshot.val();
             console.log(scoutInfo);
-            console.log(scoutInfo[Object.keys(scoutInfo)[0]]);
-            processResults(team,allianceColor,scoutInfo[Object.keys(scoutInfo)[0]]);
+            console.log(scoutInfo);
+            processResults(team,allianceColor,scoutInfo);
         } else {
             processResults(team,allianceColor,null);
         }
@@ -236,20 +218,6 @@ function getTeamsInMatch(sku) {
     });
 }
 var page = "matchInfo";
-firebase.auth().onAuthStateChanged(function (user) {
-    if (user) {
-        signedInUser = user;
-        $("#sign-in").hide();
-        /*firebase.auth().currentUser.getToken(true).then(function(idToken) {
-            $.ajax("/api/scout/" + org + "/" + tournament + "/" + qmatch, { data: JSON.stringify({"token":idToken}),
-                dataType:"json", success:renderMatchInfo,method: "POST",contentType:"application/json"});
-        });*/
-        getUserDefaults();
-
-    } else {
-        window.location = "/auth"; //user is not signed in, redirect to sign in page
-    }
-});
 
 function initialize() {
     componentHandler.upgradeAllRegistered(); //to make sure the loading spinner appears and not just "Loading..."

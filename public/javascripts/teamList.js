@@ -18,7 +18,17 @@ function finishRenderTable(response) {
              }},
              {"title": "Max CS" },
              {"title": "Max RS"},
-             {"title": "Max PS" }
+             {"title": "Max PS" },
+             {"title": "Scoring" },
+             {"title": "Scores in" },
+             {"title": "Scores every (s)" },
+             {"title": "Claw sturdiness" },
+             {"title": "Stars held" },
+             {"title": "Cubes held" },
+             {"title": "Drops objects" },
+             {"title": "Auton. swing" },
+             {"title": "Auton play." },
+             {"title": "Hang" },
        /*      { "data": "team",
                  "class": "align-right"},
              /!*{ "data": "star" }*!/
@@ -74,33 +84,8 @@ $("#table_id").on( 'draw.dt', function () {
     }
 });
 
-var config = {
-    apiKey: "AIzaSyAIvK9HrI4P7MJlzjOHmcWeja2BPEInuTo",
-    authDomain: "wa-robotics-scout.firebaseapp.com",
-    databaseURL: "https://wa-robotics-scout.firebaseio.com",
-    storageBucket: "wa-robotics-scout.appspot.com",
-    messagingSenderId: "490870467180"
-};
-firebaseInit();
 
 
-function firebaseInit() {
-    firebase.initializeApp(config);
-}
-
-function signOut() {
-    firebase.auth().signOut();
-}
-
-firebase.auth().onAuthStateChanged(function (user) {
-    if (user) {
-        signedInUser = user;
-        $("#sign-in").hide();
-        getUserDefaults();
-    } else {
-        window.location = "/auth"; //user is not signed in, redirect to sign in page
-    }
-});
 
 function firebaseListenStars() {
     var db = firebase.database();
