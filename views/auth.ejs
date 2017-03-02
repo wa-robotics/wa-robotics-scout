@@ -34,7 +34,7 @@
         // FirebaseUI config.
         var uiConfig = {
             <% if (redirect === "join") {%>
-            'signInSuccessUrl': '/join/<%- inviteCode %>',
+            'signInSuccessUrl': '/join/<%- inviteCode; %>',
             <% } else { %>
             'signInSuccessUrl': '/',
             <% } %>

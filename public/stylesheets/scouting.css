@@ -331,3 +331,11 @@ div.mdl-textfield#container-auton-actions-other > .mdl-textfield__input{
     padding-top: 0;
 
 }
+
+#auton-action-phrases {
+    font-size: 16px
+}
+
+#auton-action-phrases > li {
+    line-height: 31px;
+}

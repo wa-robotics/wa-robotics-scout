@@ -1,26 +1,5 @@
-  function firebaseInit() {
-      firebase.initializeApp(config);
-  }
-
-
   var page = "scout";
-  var config = {
-      apiKey: "AIzaSyAIvK9HrI4P7MJlzjOHmcWeja2BPEInuTo"
-      , authDomain: "wa-robotics-scout.firebaseapp.com"
-      , databaseURL: "https://wa-robotics-scout.firebaseio.com"
-      , storageBucket: "wa-robotics-scout.appspot.com"
-      , messagingSenderId: "490870467180"
-  };
-  firebaseInit();
-  firebase.auth().onAuthStateChanged(function (user) {
-      if (user) {
-          signedInUser = user;
-          $("#sign-in").hide();
-          getUserDefaults();
-      } else {
-          window.location = "/auth"; //user is not signed in, redirect to sign in page
-      }
-  });
+
   var globalInfo = {};
   var sku;
   function loadMatchData(data, forOtherMatch) {
@@ -140,10 +119,10 @@
       scoredObjsQuestionEnabled = false;
       numStarGroupsEntered = 0;
       if (allianceSelected === "blue") { //blue alliance selected; make sure blue field is displayed and enabled
-          $('#field-image-blue').removeClass('disabled hidden');
+          $('#field-image-red').removeClass('disabled hidden');
       }
       else { //act on red; blue is hidden
-          $('#field-image-red').removeClass('disabled hidden');
+          $('#field-image-blue').removeClass('disabled hidden');
       }
       $('#reset-score-locs, #undo-last-score-loc-input').addClass('soft-hidden');
       $('#obj-locs-response-done').addClass('hidden');
@@ -214,7 +193,39 @@
       $('.img-responsive.blue-alliance, .img-responsive.red-alliance').on("click", scoringLocationsImageClicked);
       $('#reset-score-locs').on("click", resetScoredObjs);
       $('#undo-last-score-loc-input').on("click", undoLastScoredObj);
+
+      //auto-update max stars/cubes held input when typical stars/cubes held entered
+      $('#driver-cubes-held').change(function(e) {
+          $('#driver-cubes-held-max').val($('#driver-cubes-held').val());
+          $('#driver-cubes-held-max').parent().addClass("is-dirty");
+
+      });
+
+      $('#driver-stars-held').change(function(e) {
+          $('#driver-stars-held-max').val($('#driver-stars-held').val());
+          $('#driver-stars-held-max').parent().addClass("is-dirty");
+      });
+
+      $("#auton-action-phrases").on("click","li",addAutonPhrase);
+
+      $("input[name='offline-alliance']").change(function(e) {
+         allianceSelected = $(this).val();
+         updateFieldImage();
+      });
   });
+
+  function addAutonPhrase(e) {
+      console.log($(this).text());
+      var spacer = ", ";
+      if ($(this).attr("data-no-comma") === "true") {
+          console.log("no comma");
+          spacer = " ";
+      }
+      var autonActionsSelector = "#auton-actions";
+      var currentText = $(autonActionsSelector).val();
+      $(autonActionsSelector).val(currentText + $(this).text() + spacer);
+      $(autonActionsSelector).addClass("is-dirty");
+  }
 
   function updateAutonWinnerDisplay(winner) {
       "use strict";
@@ -411,8 +422,8 @@
 
   function loadOtherMatch() {
       //console.log("clicked");
-      var matchNum = parseInt($('#other-match-num').val())
-          , matchIsVisible = false;
+      var matchNum = parseInt($('#other-match-num').val()),
+          matchIsVisible = false;
       for (var i = 0; i < matchesVisible.length; i++) { //before we load this match, make sure it is not already being displayed
           if (matchNum === matchesVisible[i]) {
               matchIsVisible = true;
@@ -593,7 +604,7 @@
       stem = checkboxValsArray[0].id.substring(0,id.indexOf("-") + 1);
       for (var i = 0; i < checkboxValsArray.length; i++) {
           id = checkboxValsArray[i].id;
-          console.log(id.substring(0,id.indexOf("-") + 1))
+          console.log(id.substring(0,id.indexOf("-") + 1));
           if (id.substring(0,id.indexOf("-") + 1) !== stem) {
               console.log("new stem");
               stem = id.substring(0,id.indexOf("-") + 1);
@@ -623,7 +634,7 @@
       $('input[type="number"]').each(function () {
           formAnswers.text[$(this).attr('id')] = ($(this).val());
       });
-      $('input[type="text"]').each(function () {
+      $('input[type="text"], input[type="textarea"]').each(function () {
           formAnswers.text[$(this).attr('id')] = ($(this).val());
       });
       $('input[type="radio"]:checked').each(function () {
@@ -684,7 +695,7 @@
       }
 
       console.log("r",r);
-      console.log("form answrs",formAnswers)
+      console.log("form answrs",formAnswers);
 
       var autonPlayStart,
           dcHangDuration,
@@ -710,7 +721,7 @@
       //autonStart is when the autonomous period starts
       //auton-start-time is the marked time (result of pressing "Mark time" button) for when the autonomous period starts
       if (formAnswers.markedTimes["auton-start-time"] !== "") {
-          autonPlayStart = 15 - getSecondsBetween_(parseInt(formAnswers.markedTimes["autonStart"]),parseInt(formAnswers.markedTimes["auton-start-time"]));
+          autonPlayStart = 15 - getSecondsBetween_(parseInt(formAnswers.markedTimes.autonStart),parseInt(formAnswers.markedTimes["auton-start-time"]));
       } else if (formAnswers.text["auton-play-start-time"] !== "") {
           if (parseInt(formAnswers.text["auton-play-start-time"]) >= 0 && parseInt(formAnswers.text["auton-play-start-time"]) <= 15) {
               autonPlayStart = parseInt(formAnswers.text["auton-play-start-time"]);
@@ -762,7 +773,7 @@
               autonActions.push($(this).text().substring(12));
           }
       });
-      r.auton.actions = autonActions.toString();
+      r.auton.actions = autonActions.toString().replace(/,/g,", ");
 
       for (var prop in r) {
           if (prop === "robot" || prop === "hang" || prop === "auton") {
@@ -780,8 +791,26 @@
       }
       console.log("new r",r);
 
-      var pushRef= firebase.database().ref("/scouting/" + userDefaults.org + "/" + userDefaults.tournament).push();
-      pushRef.set(r).then(function() {
+      let finalResults = {
+          "Team":r.team,
+          "scoredObjs":formAnswers.scoredObjs,
+          "Last scouted in": r.match,
+          "Scores in":"",
+          "Scores every (s)":"",
+          "Scoring device(s)":r.robot.type,
+          "Strafes":r.robot.strafes,
+          "Sturdiness of scoring device":r.robot.platformStability,
+          "Stars held":r.robot.platformStars,
+          "Cubes held":r.robot.platformCubes,
+          "Drops objects":r.robot.platformHolding,
+          "Auton swing (pts)":r.auton.pointsScored,
+          "Auton start time":r.auton.startTime,
+          "Auton play":r.auton.actions,
+          "Hang":r.hang.result + " in " + r.hang.duration
+      };
+
+      /*var pushRef= firebase.database().ref("/scouting/" + userDefaults.org + "/" + userDefaults.tournament).push();
+      pushRef.set(finalResults).then(function() {
           $('#submit-form').removeAttr("disabled");
           $('#submit-success').removeClass("hidden");
       }).catch(function(e) {
@@ -789,7 +818,24 @@
           $('#submit-form').removeAttr("disabled");
           $('#submit-error-msg').text(error);
           $('#submit-error').removeClass("hidden");
-      });
+      });*/
+
+      //firebase.database().ref("scouting/" + userDefaults.org + "/" + userDefaults.tournament + "/" + finalResults.Team).set(finalResults);
+
+      var pushRef= firebase.database().ref("/scoutingFormQueue/tasks").push();
+       pushRef.set({
+           formResponses:finalResults,
+           tournament:userDefaults.tournament,
+           org:userDefaults.org
+       }).then(function() {
+       $('#submit-form').removeAttr("disabled");
+       $('#submit-success').removeClass("hidden");
+       }).catch(function(e) {
+       console.error(e);
+       $('#submit-form').removeAttr("disabled");
+       $('#submit-error-msg').text(e);
+       $('#submit-error').removeClass("hidden");
+       });
 
       /*google.script.run.withSuccessHandler(function (result) {
           console.log(result);
