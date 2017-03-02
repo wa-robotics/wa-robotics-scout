@@ -8,18 +8,18 @@
   },
   "dependencies": {
     "basic-auth": "^1.1.0",
-    "body-parser": "^1.16.0",
+    "body-parser": "^1.16.1",
     "cookie-parser": "~1.4.3",
     "debug": "~2.6.0",
-    "ejs": "~2.5.5",
+    "ejs": "~2.5.6",
     "express": "~4.14.0",
-    "firebase": "^3.6.6",
-    "firebase-admin": "^4.1.0",
+    "firebase": "^3.6.9",
+    "firebase-admin": "^4.1.1",
     "firebase-queue": "^1.6.1",
-    "morgan": "~1.7.0",
+    "morgan": "~1.8.1",
     "request": "^2.78.0",
     "request-promise": "^4.1.1",
-    "serve-favicon": "~2.3.0"
+    "serve-favicon": "~2.4.1"
   },
   "devDependencies": {
     "mocha": "^3.1.2",
