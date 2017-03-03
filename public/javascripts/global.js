@@ -64,6 +64,8 @@ function getUserDefaults() {
             });
         } else if (page === "matchInfo") {
             getTeamsInMatch(userDefaults.tournamentSku);
+        } else if (page === "teamsearch") {
+            $('#search-ui, #search-data-loading').removeClass("hidden is-active");
         }
     });
 }

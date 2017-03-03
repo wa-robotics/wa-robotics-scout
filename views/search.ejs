@@ -4,35 +4,58 @@
 <head>
     <base target="_top">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WA Robotics Scout Web</title>
+    <title><% title %></title>
     <link rel="stylesheet" href="https://code.getmdl.io/1.1.3/material.blue_grey-orange.min.css" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"> </head>
+    <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/jqc-1.12.4/dt-1.10.13/fc-3.2.2/fh-3.1.2/sc-1.4.2/datatables.min.css"/>
+    <link rel="stylesheet" href="../../../../../stylesheets/global.css" type="text/css" />
 
 <body class="mdl-color--grey-50">
     <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
         <%- include('nav', {includeMenu: true, includeSignOut: true}); %>
             <main class="mdl-layout__content">
                 <div class="page-content">
+                    <div class="mdl-grid hidden" id="viewing-info">
+                        <div class="mdl-cell--12-col"></div>
+                    </div>
                     <div class="mdl-grid">
                         <div class="mdl-cell--12-col">
-                            <h4>Search team data</h4>
-                            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                                <input class="mdl-textfield__input" type="text" id="search-team" pattern="^[0-9]{1,5}[a-zA-Z]?$" />
-                                <label class="mdl-textfield__label" for="search-team">Team number</label> <span class="mdl-textfield__error">Enter a valid team number</span> </div>
-                            <br />
-                            <button id="search" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored"> Search </button>
-                            <div id="team-info-table">
-                                <button onclick="signIn()" id="sign-in" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored"> Sign in </button>
+                            <div class="hidden" id="search-ui">
+                                <h4>Search team data</h4>
+                                <p>All the searches! Enter up to 6 team numbers separated by commas but not spaces (e.g.,
+                                    1900X,1900W) to see data for them.</p>
+                                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                                    <input class="mdl-textfield__input" type="text" id="search-teams"/>
+                                    <label class="mdl-textfield__label" for="search-team">Team numbers</label> <span
+                                            class="mdl-textfield__error">Enter a valid team number</span></div>
+                                <br/>
+                                <button id="search"
+                                        class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored">
+                                    Search
+                                </button>
                             </div>
+                            <div class="mdl-grid" id="match-team-info-tables">
+                                <div id="search-data-loading"
+                                     class="mdl-spinner mdl-spinner--single-color mdl-js-spinner is-active"></div>
+                            </div>
+                        </div>
+                        <div id="team-info-table">
+                            <button onclick="signIn()" id="sign-in"
+                                    class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored">
+                                Sign in
+                            </button>
                         </div>
                     </div>
                 </div>
-                <%- include("footer")%>    </div>
+                <%- include("footer")%> </div>
             </main>
 
     <script src="https://code.getmdl.io/1.1.3/material.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/v/dt/jqc-1.12.4/dt-1.10.13/fc-3.2.2/fh-3.1.2/sc-1.4.2/datatables.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/3.5.0/firebase.js"></script>
+    <script src="../../../../javascripts/global.js"></script>
     <script src="javascripts/teamsearch.js"></script>
     <%- include("analytics"); %>
 </body>
