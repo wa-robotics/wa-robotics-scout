@@ -166,3 +166,7 @@ table.team-info-table {
 .align-right {
     text-align: right;
 }
+
+#search-teams {
+    text-transform: uppercase;
+}

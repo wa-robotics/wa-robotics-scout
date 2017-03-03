@@ -14,7 +14,8 @@ function finishRenderTable(response) {
              { targets: [0], width: '3em' },
              { targets: [2,3,4], width: '1em' },
              { targets: [7,14,15], width: '12em' },
-             { targets: [9,12], width: '6em' }
+             { targets: [9,12], width: '6em' },
+             { targets: [13],"type":"numeric"}
 
 
          ],
