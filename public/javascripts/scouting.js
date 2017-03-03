@@ -672,7 +672,9 @@
               platformStability: formAnswers.radio["platform-stability"] || "Unknown",
               platformHolding: formAnswers.radio["objs-fall"] || "Unknown",
               platformStars: formAnswers.text["driver-stars-held"] || "Unknown",
-              platformCubes: formAnswers.text["driver-cubes-held"] || "Unknown"
+              platformCubes: formAnswers.text["driver-cubes-held"] || "Unknown",
+              platformStarsMax: formAnswers.text["driver-stars-held-max"] || "Unknown",
+              platformCubesMax: formAnswers.text["driver-cubes-held-max"] || "Unknown"
           },
           hang: {
               startTime: null,
@@ -800,8 +802,8 @@
           "Scoring device(s)":r.robot.type,
           "Strafes":r.robot.strafes,
           "Sturdiness of scoring device":r.robot.platformStability,
-          "Stars held":r.robot.platformStars,
-          "Cubes held":r.robot.platformCubes,
+          "Stars held":"Typical: " + r.robot.platformStars + ", Max: " + r.robot.platformStarsMax,
+          "Cubes held":"Typical: " + r.robot.platformCubes + ", Max: " + r.robot.platformCubesMax,
           "Drops objects":r.robot.platformHolding,
           "Auton swing (pts)":r.auton.pointsScored,
           "Auton start time":r.auton.startTime,
