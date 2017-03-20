@@ -10,5 +10,6 @@
       "sizes": "144x144"
     }
   ],
-  "theme_color": "#607D8B"
+  "theme_color": "#607D8B",
+  "background_color":"607D8B"
 }
