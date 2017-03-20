@@ -9,6 +9,18 @@
 
       $("#match-container").on("click","div > div.match-info-card div.mdl-card__title > button.star-match-btn","",matchToggleStar);
 
+      if ('serviceWorker' in navigator) {
+          window.addEventListener('load', function() {
+              navigator.serviceWorker.register('pushService.js').then(function(registration) {
+                  // Registration was successful
+                  console.log('ServiceWorker registration successful with scope: ', registration.scope);
+              }).catch(function(err) {
+                  // registration failed :(
+                  console.log('ServiceWorker registration failed: ', err);
+              });
+          });
+      }
+
   });
   var page = "index"; //so getUserDefaults in global.js can know to call getTeamMatches when it's done
   function matchToggleStar() {
