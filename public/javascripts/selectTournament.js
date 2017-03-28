@@ -161,11 +161,9 @@ function dropdownFillOrgSelect(snapshot) {
 }
 
 function fillOrgSelect(orgs) {
-    var i = 0;
     resetDropdowns();
-    while (i < orgs.length) {
-        firebase.database().ref("/organizations/"+ orgs[i]).once("value").then(dropdownFillOrgSelect).catch(logError);
-        i++;
+    for (var g in orgs) {
+        firebase.database().ref("/organizations/"+ orgs[g]).once("value").then(dropdownFillOrgSelect).catch(logError);
     }
 }
 

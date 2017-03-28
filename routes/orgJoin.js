@@ -104,7 +104,9 @@ router.post('/:orgauth/add', function (req, res, next) {
             return db.ref("/organizations/" + orgId + "/teams").update(teamObj);
         }
     }).then(function() { //Hack-y fix but gets the job  - overwrites all organizations with the newest one
-        return db.ref("users/" + uid + '/userorgs').set({"0":0});
+        let obj = {};
+        obj[orgId] = orgId;
+        return db.ref("users/" + uid + '/userorgs').update(obj);
     }).then(function() {
         res.status(200);
         res.send({"result":"added","status":1});
