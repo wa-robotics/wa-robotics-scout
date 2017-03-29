@@ -291,8 +291,10 @@ function getTournamentScoutingInfo(db,org,tourney) {
 }
 
 function getScoutingProp(prop, team, scoutingInfo) {
-    if (Object.keys(scoutingInfo).indexOf(team) > -1) { //if there's scouting info for this team
-        return scoutingInfo[team][prop];
+    if (scoutingInfo != null) {
+        if (Object.keys(scoutingInfo).indexOf(team) > -1) { //if there's scouting info for this team
+            return scoutingInfo[team][prop];
+        }
     }
     return "";
 
@@ -337,6 +339,7 @@ router.post('/pretournament/fetch', function (req, res, next) {
         return db.ref("/pretourneySkillsData/" + tournamentSku).once("value");
     }).then(function(snapshot) {
         let skillsData = snapshot.val();
+        console.log(340);
         let result = [];
 
         /*             {"title": "Max CS" },
@@ -355,19 +358,25 @@ router.post('/pretournament/fetch', function (req, res, next) {
         //get scouting info for teams
         getTournamentScoutingInfo(db,orgId,tournament).then(function (scoutingInfoSnapshot) {
             let scoutingInfo = scoutingInfoSnapshot.val();
-            console.log(Object.keys(scoutingInfo),scoutingInfo["88E"]);
+            console.log("scoutingInfo",scoutingInfo);
+            //console.log(Object.keys(scoutingInfo),scoutingInfo["88E"]);
             //skillsData is based off of team list for tournament, so this includes all the teams at the tournament
-            for (let team in skillsData) {
-                if (skillsData.hasOwnProperty(team) && team !== "dateCollected") {
-                    result.push([skillsData[team].team,null,skillsData[team].maxTotal,skillsData[team].maxRobot,skillsData[team].maxProg,[getScoutingProp("Last scouted in",team, scoutingInfo)],[getScoutingProp("Scoring device(s)",team, scoutingInfo)],
-                        [getScoutingProp("Scores in",team, scoutingInfo)],[getScoutingProp("Scores every (s)",team, scoutingInfo)],
-                        [getScoutingProp("Sturdiness of scoring device",team, scoutingInfo)],[getScoutingProp("Stars held",team, scoutingInfo)],
-                        [getScoutingProp("Cubes held",team, scoutingInfo)],[getScoutingProp("Drops objects",team, scoutingInfo)],[getScoutingProp("Auton swing (pts)",team, scoutingInfo)],[getScoutingProp("Auton play",team, scoutingInfo)],
-                        [getScoutingProp("Hang",team, scoutingInfo)]]);
+                for (let team in skillsData) {
+                    if (skillsData.hasOwnProperty(team) && team !== "dateCollected") {
+                        result.push([skillsData[team].team, null, skillsData[team].maxTotal, skillsData[team].maxRobot, skillsData[team].maxProg, [getScoutingProp("Last scouted in", team, scoutingInfo)], [getScoutingProp("Scoring device(s)", team, scoutingInfo)],
+                            [getScoutingProp("Scores in", team, scoutingInfo)], [getScoutingProp("Scores every (s)", team, scoutingInfo)],
+                            [getScoutingProp("Sturdiness of scoring device", team, scoutingInfo)], [getScoutingProp("Stars held", team, scoutingInfo)],
+                            [getScoutingProp("Cubes held", team, scoutingInfo)], [getScoutingProp("Drops objects", team, scoutingInfo)], [getScoutingProp("Auton swing (pts)", team, scoutingInfo)], [getScoutingProp("Auton play", team, scoutingInfo)],
+                            [getScoutingProp("Hang", team, scoutingInfo)]]);
+                    }
                 }
-            }
+
             console.log("result is",result);
             res.send(result);
+        }).catch(function(error) {
+            console.error("Server error: " + error.message);
+            res.status(500);
+            res.send({"result":"error","status":0,"message":error.message});
         });
 
 
@@ -578,6 +587,11 @@ router.get('/:sku/match/:round/:instance/:num', (req,res,next) => {
 router.get('/:sku/rank/:team', (req,res,next) => {
     res.set('Content-Type', 'application/json');
     getTeamRankInfo(res, req.params.sku, req.params.team);
+});
+
+router.post('/push/register', (req,res,next) => {
+    res.set('Content-Type','application/json');
+    res.send("hi");
 });
 
 
