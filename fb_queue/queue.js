@@ -246,7 +246,7 @@ function getMinValue(currentTeamData, prop, scoutingInfo,noCurrentTeamData) {
 function getMaxValue(currentTeamData, prop, scoutingInfo, noCurrentTeamData) {
     let oldValue = "none";
     if (!noCurrentTeamData) {
-        console.log("getting old value")
+        console.log("getting old value");
         oldValue = getPropOrNone(currentTeamData, prop, "max");
         //console.log("currentteamdata,prop,max,values", currentTeamData, prop, "max", currentTeamData[prop], currentTeamData[prop].max, oldValue);
     }
@@ -356,6 +356,37 @@ function getAppend(currentTeamData,prop,scoutingInfo,noCurrentTeamData,uniqueVal
 
 }
 
+function getScoredObjAnalysis(currentTeamData,prop,scoutingInfo,noCurrentTeamData) {
+    let result;
+    let output = "";
+    if (typeof scoutingInfo[prop] === "object") {
+        result = parseScoredObjs(scoutingInfo[prop]);
+    }
+    console.log(result);
+    let currentVal = "";
+    if (!noCurrentTeamData) {
+        currentVal = currentTeamData[prop];
+        if (typeof currentVal === "undefined" || currentVal == null) {
+            currentVal = "";
+        } else if (checkPropForUnknown(currentVal)) {
+            currentVal = "";
+        }
+    }
+    if (currentVal.length > 0) {
+        currentVal += " | ";
+    }
+    console.log(currentVal);
+    if (typeof result !== "number") {
+        let pctNear = result.percentNear,
+            pctFar = result.percentFar,
+            cycleTime = result.avgScoreTime,
+            num = result.numScores;
+        return currentVal + `${round(cycleTime,1)}: ${round(pctNear,1)}% near, ${round(pctFar,1)}% far (${num})`; //4.2s: "45.2% near, 25.2% far (20)
+
+    }
+    return null;
+}
+
 let formQueue = new Queue(sq,scoutingFormSubmissions, (data,progress,resolve,reject) => {
     console.log("is this file doing anything even");
     console.log("running formqueue");
@@ -440,7 +471,6 @@ let formQueue = new Queue(sq,scoutingFormSubmissions, (data,progress,resolve,rej
         for (let prop in scoutingInfo) {
             if (scoutingInfo.hasOwnProperty(prop)) {
                 console.log("now processing", prop);
-                console.log("looping through accumulates requested");
                 let currAccumulate;
                 let oldValue, newValue;
                 result[prop] = {};
@@ -453,8 +483,7 @@ let formQueue = new Queue(sq,scoutingFormSubmissions, (data,progress,resolve,rej
                     if (currAccumulate === "min") {
                         result[prop].min = getMinValue(currentTeamData, prop, scoutingInfo,noCurrentTeamData);
                     } else if (currAccumulate === "max") {
-                        console.log(scoutingInfo["autonStartTime"]);
-                        result[prop].max = getMaxValue(currentTeamData,prop,scoutingInfo,noCurrentTeamData)
+                        result[prop].max = getMaxValue(currentTeamData,prop,scoutingInfo,noCurrentTeamData);
                     } else if (currAccumulate === "average") {
                         result[prop].average = getNewAverage(currentTeamData,prop,scoutingInfo,noCurrentTeamData);
                     } else if (currAccumulate === "none") {
@@ -465,6 +494,8 @@ let formQueue = new Queue(sq,scoutingFormSubmissions, (data,progress,resolve,rej
                         result[prop] = getCounts(currentTeamData,prop,scoutingInfo,noCurrentTeamData);
                     } else if (currAccumulate === "append") {
                         result[prop]= getAppend(currentTeamData,prop,scoutingInfo,noCurrentTeamData,props[prop].uniqueOnly);
+                    } else if (currAccumulate === "special-scoredObj") {
+                        result[prop] = getScoredObjAnalysis(currentTeamData,prop,scoutingInfo,noCurrentTeamData);
                     }
                 }
             }
