@@ -200,6 +200,9 @@ function round(number, precision) {
 
 function getPropOrNone(object,prop,attribute) {
     try {
+        if (typeof object[prop][attribute] === "undefined") {
+            return "none";
+        }
         return object[prop][attribute];
     } catch(error) {
         return "none";
@@ -211,6 +214,38 @@ function checkPropForUnknown(value) {
         return true;
     }
     return false;
+}
+
+function getMinValue(currentTeamData, prop, scoutingInfo) {
+    oldValue = getPropOrNone(currentTeamData, prop, "min");
+    newValue = checkPropForUnknown(scoutingInfo[prop]) ? "none" : parseInt(scoutingInfo[prop]);
+    console.log("old, new value for", prop, "(min):", oldValue, newValue);
+    if (oldValue === "none" && newValue !== "none") {
+        return newValue;
+    } else if (newValue !== "none") {
+        if (newValue < oldValue) {
+            return newValue;
+        } else {
+            return oldValue;
+        }
+    }
+    return null;
+}
+
+function getMaxValue(currentTeamData, prop, scoutingInfo) {
+    oldValue = getPropOrNone(currentTeamData, prop, "max");
+    newValue = checkPropForUnknown(scoutingInfo[prop]) ? "none" : parseInt(scoutingInfo[prop]);
+    console.log("old, new value for", prop, "(max):", oldValue, newValue);
+    if (oldValue === "none" && newValue !== "none") {
+        return newValue;
+    } else if (newValue !== "none") {
+        if (newValue > oldValue) {
+            return newValue;
+        } else {
+            return oldValue;
+        }
+    }
+    return null;
 }
 
 let formQueue = new Queue(sq,scoutingFormSubmissions, (data,progress,resolve,reject) => {
@@ -240,13 +275,17 @@ let formQueue = new Queue(sq,scoutingFormSubmissions, (data,progress,resolve,rej
     *      If the value is not "Unknown," the value will be converted to an integer.
     */
     let props = {
-        stars: {
-            accumulate: ["average","max"],
-            type: "property"
+        starsAverage: {
+            accumulate: ["average"]
         },
-        cubes: {
-            accumulate: ["average","max"],
-            type: "property"
+        starsMax:{
+          accumulate: ["max"]
+        },
+        cubesAverage: {
+            accumulate: ["average"]
+        },
+        cubesMax: {
+            accumulate: ["max"]
         },
         autonPlay: {
             accumulate: ["append"],
@@ -296,29 +335,14 @@ let formQueue = new Queue(sq,scoutingFormSubmissions, (data,progress,resolve,rej
                 console.log("looping through accumulates requested");
                 let currAccumulate;
                 let oldValue, newValue;
+                result[prop] = {};
                 for (let i = 0; i < props[prop].accumulate.length; i++) {
                     currAccumulate = props[prop].accumulate[i];
                     console.log("processing accumulate", currAccumulate);
                     if (currAccumulate === "min") {
-                        oldValue = getPropOrNone(currentTeamData, prop, "min");
-                        newValue = checkPropForUnknown(scoutingInfo[prop]) ? "none" : parseInt(scoutingInfo[prop]);
-                        console.log("old, new value for", prop, "(", currAccumulate, "):", oldValue, newValue);
-                        if (oldValue === "none" && newValue !== "none") {
-                            result[prop] = {
-                                min: newValue
-                            };
-                        } else if (newValue !== "none") {
-                            if (newValue < oldValue) {
-                                result[prop] = {
-                                    min: newValue
-                                };
-                            } else {
-                                result[prop] = {
-                                    min: oldValue
-                                };
-                            }
-
-                        }
+                        result[prop].min = getMinValue(currentTeamData, prop, scoutingInfo);
+                    } else if (currAccumulate === "max") {
+                        result[prop].max = getMaxValue(currentTeamData,prop,scoutingInfo);
                     }
                 }
             }
