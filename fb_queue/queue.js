@@ -316,13 +316,11 @@ function getCounts(currentTeamData,prop,scoutingInfo,noCurrentTeamData) {
     console.log("newData split is",split);
     let result = {};
     if (oldData === "none" && newData !== "none") {
-        console.log("taking the road less traveled");
         for (let i = 0; i < split.length; i++) {
             result[split[i]] = 1;
         }
         return result;
     } else if (newData !== "none") {
-        console.log("taking the road");
         let elem,
             oldObjectKeys = Object.keys(oldData);
         result = currentTeamData[prop];
@@ -338,6 +336,24 @@ function getCounts(currentTeamData,prop,scoutingInfo,noCurrentTeamData) {
     }
 
     return null;
+}
+
+function getAppend(currentTeamData,prop,scoutingInfo,noCurrentTeamData,uniqueValsOnly) {
+    let currentVal = "";
+    if (!noCurrentTeamData) {
+        currentVal = currentTeamData[prop];
+        if (typeof currentVal === "undefined" || currentVal == null) {
+            currentVal = "";
+        }
+    }
+    let newVal = checkPropForUnknown(scoutingInfo[prop]) ? "none" : scoutingInfo[prop];
+    if (!uniqueValsOnly || currentVal.indexOf(newVal) === -1) {
+        currentVal += ", " + newVal;
+        return currentVal;
+    }
+
+    return null;
+
 }
 
 let formQueue = new Queue(sq,scoutingFormSubmissions, (data,progress,resolve,reject) => {
@@ -384,7 +400,8 @@ let formQueue = new Queue(sq,scoutingFormSubmissions, (data,progress,resolve,rej
             uniqueOnly: true
         },
         hang: {
-            accumulate: ["append"]
+            accumulate: ["append"],
+            uniqueOnly: false
         },
         sturdiness: {
             accumulate: ["count"]
@@ -399,8 +416,7 @@ let formQueue = new Queue(sq,scoutingFormSubmissions, (data,progress,resolve,rej
             accumulate: ["special-scoredObj"]
         },
         scoringDevices: {
-            accumulate: ["append"],
-            uniqueOnly: true
+            accumulate: ["count"]
         },
         strafes: {
             accumulate: ["none"]
@@ -447,6 +463,8 @@ let formQueue = new Queue(sq,scoutingFormSubmissions, (data,progress,resolve,rej
                         }
                     } else if (currAccumulate === "count") {
                         result[prop] = getCounts(currentTeamData,prop,scoutingInfo,noCurrentTeamData);
+                    } else if (currAccumulate === "append") {
+                        result[prop]= getAppend(currentTeamData,prop,scoutingInfo,noCurrentTeamData,props[prop].uniqueOnly);
                     }
                 }
             }
