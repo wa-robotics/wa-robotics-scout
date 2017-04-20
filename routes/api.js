@@ -121,8 +121,9 @@ function getUnscoredMatches(res, sku, num,getStarred, division="") {
     });
 }
 
-function getMatch(res, sku, round, instance, matchNum) {
-    request("https://api.vexdb.io/v1/get_matches?sku=" + sku + "&round=" + round + "&instance=" + instance + "&matchnum=" + matchNum, (error, response, body) => {
+function getMatch(res, sku, round, instance, matchNum,division = "") {
+    let divisionString = (division === "") ? "" : "&division="  + division;
+    request("https://api.vexdb.io/v1/get_matches?sku=" + sku + "&round=" + round + "&instance=" + instance + "&matchnum=" + matchNum + divisionString, (error, response, body) => {
         var raw = body;
         var parsed = JSON.parse(raw);
         var results = {
@@ -134,8 +135,10 @@ function getMatch(res, sku, round, instance, matchNum) {
     });
 }
 
-function getTeamRankInfo(res, sku, team) { //https://api.vexdb.io/v1/get_rankings?sku=RE-VRC-16-5088&team=1961D
-    request("https://api.vexdb.io/v1/get_rankings?sku=" + sku + "&team=" + team, (error, response, body) => {
+function getTeamRankInfo(res, sku, team,division="") { //https://api.vexdb.io/v1/get_rankings?sku=RE-VRC-16-5088&team=1961D
+    let divisionString = (division === "") ? "" : "&division="  + division;
+
+    request("https://api.vexdb.io/v1/get_rankings?sku=" + sku + "&team=" + team + divisionString, (error, response, body) => {
         var raw = body;
         var parsed = JSON.parse(raw);
         var results = {
@@ -650,10 +653,20 @@ router.get('/:sku/match/:round/:instance/:num', (req,res,next) => {
     getMatch(res, req.params.sku, parseInt(req.params.round), parseInt(req.params.instance), parseInt(req.params.num));
 });
 
+router.get('/:sku/division/:division/match/:round/:instance/:num', (req,res,next) => {
+    res.set('Content-Type', 'application/json');
+    getMatch(res, req.params.sku, parseInt(req.params.round), parseInt(req.params.instance), parseInt(req.params.num),req.params.division);
+});
+
 router.get('/:sku/rank/:team', (req,res,next) => {
     res.set('Content-Type', 'application/json');
     getTeamRankInfo(res, req.params.sku, req.params.team);
 });
+
+router.get('/:sku/:division/rank/:team', (req,res,next) => {
+    res.set('Content-Type', 'application/json');
+    getTeamRankInfo(res, req.params.sku, req.params.team,req.params.division);
+})
 
 router.post('/push/register', (req,res,next) => {
     res.set('Content-Type','application/json');
