@@ -138,11 +138,14 @@
 
   function finishGetUnscoredMatches(sku) {
       "use strict";
-      firebase.auth().currentUser.getToken(/* forceRefresh */ false).then(function(idToken) {
-          $.ajax("/api/" + sku + "/unscored/3?highlight=" + userDefaults.tournament + "&token=" + idToken, {
-              success: callLoadMatchDataReg
+      firebase.database().ref("/tournaments/" + userDefaults.tournament + "/divisions/" + userDefaults.team).once("value").then(function(snapshot) {
+          firebase.auth().currentUser.getToken(/* forceRefresh */ false).then(function(idToken) {
+              $.ajax("/api/" + sku + "/" + snapshot.val() + "/unscored/3?highlight=" + userDefaults.tournament + "&token=" + idToken, {
+                  success: callLoadMatchDataReg
+              });
           });
-      });
+      })
+
 
   }
   $(document).ready(function () {
@@ -756,9 +759,9 @@
       r.hang.endTime = dcHangEnd || "Unknown";
 
       if (dcHangStart > dcHangEnd) {
-          dcHangDuration = dcHangStart - dcHangEnd;
+          dcHangDuration = " in " + (dcHangStart - dcHangEnd);
       } else {
-          dcHangDuration = "Unknown (invalid hang time(s))";
+          dcHangDuration = "";
       }
       r.hang.duration = dcHangDuration;
 
@@ -794,21 +797,21 @@
       console.log("new r",r);
 
       let finalResults = {
-          "Team":r.team,
+          "Team": r.team,
           "scoredObjs":formAnswers.scoredObjs,
-          "Last scouted in": r.match,
-          "Scores in":"",
-          "Scores every (s)":"",
-          "Scoring device(s)":r.robot.type,
-          "Strafes":r.robot.strafes,
-          "Sturdiness of scoring device":r.robot.platformStability,
-          "Stars held":"Typical: " + r.robot.platformStars + ", Max: " + r.robot.platformStarsMax,
-          "Cubes held":"Typical: " + r.robot.platformCubes + ", Max: " + r.robot.platformCubesMax,
-          "Drops objects":r.robot.platformHolding,
-          "Auton swing (pts)":r.auton.pointsScored,
-          "Auton start time":r.auton.startTime,
-          "Auton play":r.auton.actions,
-          "Hang":r.hang.result + " in " + r.hang.duration
+          "lastScouted": r.match,
+          "scoringDevices":r.robot.type,
+          "strafes":r.robot.strafes,
+          "sturdiness":r.robot.platformStability,
+          "starsAverage":r.robot.platformStars,
+          "starsMax":r.robot.platformStarsMax ,
+          "cubesAverage":r.robot.platformCubes,
+          "cubesMax":r.robot.platformCubesMax,
+          "dropsObjects":r.robot.platformHolding,
+          "autonSwing":r.auton.pointsScored,
+          "autonStartTime":r.auton.startTime,
+          "autonPlay":r.auton.actions,
+          "hang":r.hang.result + r.hang.duration
       };
 
       /*var pushRef= firebase.database().ref("/scouting/" + userDefaults.org + "/" + userDefaults.tournament).push();
@@ -830,8 +833,7 @@
            tournament:userDefaults.tournament,
            org:userDefaults.org
        }).then(function() {
-       $('#submit-form').removeAttr("disabled");
-       $('#submit-success').removeClass("hidden");
+        $('#submit-success').removeClass("hidden");
        }).catch(function(e) {
        console.error(e);
        $('#submit-form').removeAttr("disabled");

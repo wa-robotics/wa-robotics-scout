@@ -26,20 +26,22 @@ function finishRenderTable(response) {
                  "render":function(data,type,row) {
                  return '<button class="mdl-button mdl-js-button mdl-button--icon star-team-btn"><i id="' + row[0] + '" class="material-icons">star_border</i></button>';
              }},
+             {"title": "Last scouted match" },
+             {"title": "Robot type" },
+             {"title": "Claw sturdiness" },
+             {"title": "Auton. swing" },
+             {"title": "Auton. play" },
+             {"title": "Score stats" },
+             {"title": "Avg. stars held" },
+             {"title": "Max stars held" },
+             {"title": "Avg. cubes held" },
+             {"title": "Max cubes held" },
+             {"title": "Drops objects" },
+             {"title": "Strafes" },
+             {"title": "Hang" },
              {"title": "Max CS" },
              {"title": "Max RS"},
              {"title": "Max PS" },
-             {"title": "Scouted in" },
-             {"title": "Scoring" },
-             {"title": "Scores in" },
-             {"title": "Scores every (s)" },
-             {"title": "Claw sturdiness" },
-             {"title": "Stars held" },
-             {"title": "Cubes held" },
-             {"title": "Drops objects" },
-             {"title": "Auton. swing" },
-             {"title": "Auton. play" },
-             {"title": "Hang" },
        /*      { "data": "team",
                  "class": "align-right"},
              /!*{ "data": "star" }*!/
@@ -136,9 +138,39 @@ function teamToggleStar() {
     console.log(team,state);
 }
 
+//from Google Developers - https://developers.google.com/web/fundamentals/engage-and-retain/push-notifications/permissions-subscriptions
+function initialiseState() {
+    if (Notification.permission !== 'granted') { //since user has given permission to show push notifciations,
+        console.log('The user has not granted the notification permission.');
+        return;
+    } else if (Notification.permission === "blocked") {
+        /* the user has previously denied push. Can't reprompt. */
+    } else {
+        /* show a prompt to the user */
+    }
+
+    // Use serviceWorker.ready so this is only invoked
+    // when the service worker is available.
+    navigator.serviceWorker.ready.then(function(serviceWorkerRegistration) {
+        serviceWorkerRegistration.pushManager.getSubscription()
+            .then(function(subscription) {
+                if (!subscription) {
+                    // Set appropriate app states.
+                    return;
+                }
+            })
+            .catch(function(err) {
+                console.log('Error during getSubscription()', err);
+            });
+    });
+}
+
 $(document).ready(function() {
     $("#table_id").on("click","tbody > tr > td > button.star-team-btn","",teamToggleStar);
     $("#refresh-skills-data").on("click",refreshTeamListData);
+
+
+
 });
 
 function refreshTeamListData() {

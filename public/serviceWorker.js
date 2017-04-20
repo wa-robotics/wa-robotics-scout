@@ -1,11 +1,14 @@
+//This file uses code from https://developers.google.com/web/fundamentals/instant-and-offline/service-worker/lifecycle,
+//https://developers.google.com/web/fundamentals/getting-started/primers/service-workers, and
+//https://developers.google.com/web/fundamentals/instant-and-offline/service-worker/registration,
+//all of which are licensed under the Apache License 2.0.  Parts of the code have been modified from their original versions.
+
 self.addEventListener('install', function(event) {
     // Perform install steps
 });
 
-var CACHE_NAME = 'wa-robotics-scout-cache-v1';
+var CACHE_NAME = 'wa-robotics-scout-cache-v2';
 var urlsToCache = [
-    '/stylesheets/global.css',
-    '/javascripts/global.js'
 ];
 
 self.addEventListener('install', function(event) {

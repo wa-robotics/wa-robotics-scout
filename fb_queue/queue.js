@@ -192,78 +192,310 @@ let sq = db.ref("scoutingFormQueue");
 
 //from MDN - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/round
 function round(number, precision) {
-    var factor = Math.pow(10, precision);
-    var tempNumber = number * factor;
-    var roundedTempNumber = Math.round(tempNumber);
+    let factor = Math.pow(10, precision);
+    let tempNumber = number * factor;
+    let roundedTempNumber = Math.round(tempNumber);
     return roundedTempNumber / factor;
 }
 
+function getPropOrNone(object,prop,attribute) {
+    try {
+        //console.log("object",object[prop][attribute]);
+        if (typeof object[prop] !== "object" || object[prop] == null || checkPropForUnknown(object[prop])) {
+            console.log("inside first branch of if statement");
+            return "none";
+        } else if (typeof object[prop][attribute] === "undefined") {
+            return "none";
+        }
+        return object[prop][attribute];
+    } catch(e) { return "none"; }
+
+/*    try {
+        if (typeof object[prop][attribute] === "undefined") {
+            return "none";
+        }
+        return object[prop][attribute];
+    } catch(error) {
+        return "none";
+    }*/
+}
+
+function checkPropForUnknown(value) {
+    return value.toString().toLowerCase().indexOf("unknown") >= 0;
+}
+
+function getMinValue(currentTeamData, prop, scoutingInfo,noCurrentTeamData) {
+    let oldValue = "none";
+    if (!noCurrentTeamData) {
+        oldValue = getPropOrNone(currentTeamData, prop, "min");
+    }
+    newValue = checkPropForUnknown(scoutingInfo[prop]) ? "none" : parseInt(scoutingInfo[prop]);
+    console.log("old, new value for", prop, "(min):", oldValue, newValue);
+    if (oldValue === "none" && newValue !== "none") {
+        return newValue;
+    } else if (newValue !== "none") {
+        if (newValue < oldValue) {
+            return newValue;
+        } else {
+            return oldValue;
+        }
+    }
+    return null;
+}
+
+function getMaxValue(currentTeamData, prop, scoutingInfo, noCurrentTeamData) {
+    let oldValue = "none";
+    if (!noCurrentTeamData) {
+        console.log("getting old value");
+        oldValue = getPropOrNone(currentTeamData, prop, "max");
+        //console.log("currentteamdata,prop,max,values", currentTeamData, prop, "max", currentTeamData[prop], currentTeamData[prop].max, oldValue);
+    }
+    newValue = checkPropForUnknown(scoutingInfo[prop]) ? "none" : parseInt(scoutingInfo[prop]);
+    console.log("old, new value for", prop, "(max):", oldValue, newValue);
+    if (oldValue === "none" && newValue !== "none") {
+        return newValue;
+    } else if (newValue !== "none") {
+        if (newValue > oldValue) {
+            return newValue;
+        } else {
+            return oldValue;
+        }
+    }
+    return null;
+}
+
+function getNewAverage(currentTeamData,prop,scoutingInfo,noCurrentTeamData) {
+    let oldAverage = "none", oldCount = "none";
+    if (!noCurrentTeamData) {
+        oldAverage = getPropOrNone(currentTeamData, prop, "average");
+        console.log("oldaverage", oldAverage);}
+    let newValue = checkPropForUnknown(scoutingInfo[prop]) ? "none" : parseInt(scoutingInfo[prop]);
+    console.log("oldavg,oldct,newavg", oldAverage.average, oldAverage.count, newValue);
+    let count, average;
+    if (noCurrentTeamData) { //the old value isn't a number
+        count = 1;
+        if (typeof newValue === "number") {
+            return {average: newValue,
+                    count: count };
+        }
+    } else if (typeof oldAverage.average === "number" && typeof oldAverage.count === "number") {
+        if (oldAverage.count >= 1) {
+            count = oldAverage.count + 1;
+            if (typeof newValue === "number") {
+                return { average: (newValue + oldAverage.average * oldAverage.count) / count,
+                    count: count};
+            }
+        }
+
+    }
+    /*    console.log("old, new value for", prop, "(max):", oldValue, newValue);
+     if (oldValue === "none" && newValue !== "none") {
+     return newValue;
+     } else if (newValue !== "none") {
+     if (newValue > oldValue) {
+     return newValue;
+     } else {
+     return oldValue;
+     }
+     }*/
+    return null;
+}
+
+function getCounts(currentTeamData,prop,scoutingInfo,noCurrentTeamData) {
+    let oldData = "none";
+    if (!noCurrentTeamData) {
+        oldData = currentTeamData[prop];
+        if (typeof oldData === "undefined") {
+            oldData = "none";
+        }
+        console.log("olddata is",oldData);
+    }
+    let newData = checkPropForUnknown(scoutingInfo[prop]) ? "none" : scoutingInfo[prop];
+    console.log("newData is",newData);
+    let split = newData.split(", ");
+    console.log("newData split is",split);
+    let result = {};
+    if (oldData === "none" && newData !== "none") {
+        for (let i = 0; i < split.length; i++) {
+            result[split[i]] = 1;
+        }
+        return result;
+    } else if (newData !== "none") {
+        let elem,
+            oldObjectKeys = Object.keys(oldData);
+        result = currentTeamData[prop];
+        for (let i = 0; i < split.length; i++) {
+            elem = split[i];
+            if (oldObjectKeys.indexOf(elem) >= 0) {
+                result[elem] += 1;
+            } else {
+                result[elem] = 1;
+            }
+        }
+        return result;
+    }
+
+    return null;
+}
+
+function getAppend(currentTeamData,prop,scoutingInfo,noCurrentTeamData,uniqueValsOnly) {
+    let currentVal = "";
+    if (!noCurrentTeamData) {
+        currentVal = currentTeamData[prop];
+        if (typeof currentVal === "undefined" || currentVal == null) {
+            currentVal = "";
+        }
+    }
+    let newVal = checkPropForUnknown(scoutingInfo[prop]) ? "none" : scoutingInfo[prop];
+    if (!uniqueValsOnly || currentVal.indexOf(newVal) === -1) {
+        currentVal += ", " + newVal;
+        return currentVal;
+    }
+
+    return null;
+
+}
+
+function getScoredObjAnalysis(currentTeamData,prop,scoutingInfo,noCurrentTeamData) {
+    let result;
+    let output = "";
+    if (typeof scoutingInfo[prop] === "object") {
+        result = parseScoredObjs(scoutingInfo[prop]);
+    }
+    console.log(result);
+    let currentVal = "";
+    if (!noCurrentTeamData) {
+        currentVal = currentTeamData[prop];
+        if (typeof currentVal === "undefined" || currentVal == null) {
+            currentVal = "";
+        } else if (checkPropForUnknown(currentVal)) {
+            currentVal = "";
+        }
+    }
+    if (currentVal.length > 0) {
+        currentVal += " | ";
+    }
+    console.log(currentVal);
+    if (typeof result !== "number") {
+        let pctNear = result.percentNear,
+            pctFar = result.percentFar,
+            cycleTime = result.avgScoreTime,
+            num = result.numScores;
+        return currentVal + `${round(cycleTime,1)}: ${round(pctNear,1)}% near, ${round(pctFar,1)}% far (${num})`; //4.2s: "45.2% near, 25.2% far (20)
+
+    }
+    return null;
+}
+
 let formQueue = new Queue(sq,scoutingFormSubmissions, (data,progress,resolve,reject) => {
+    console.log("is this file doing anything even");
     console.log("running formqueue");
     let tournamentId = data.tournament;
     let orgId = data.org;
     let scoutingInfo = data.formResponses;
     let result = {};
+
+    //describes accumulation required for fields on the scouting form
+    /*
+    * Each item in props is an expected property of the object sent to the server queue
+    * by the scouting form.
+    *
+    * The accumulate property of each of the properties in props tells the server how to combine past and new data.
+    * Min means that the server will output the lowest numerical value present for that field.
+    * Max means that the server will output the highest numerical value present for that field.
+    * Average means that the server will compute the mean value for the field.  This also adds a "count" property to allow
+    *      future calculation of the average based on the current average.
+    * Append is for string values, and will create a new string combining the latest text from the scouting form with the previous
+    *      submitted text for the field.  If uniqueOnly is true, then the new string will only be added if it is not already present in the
+    *      old string.
+    * Count means that the server will count how many times a value occurs in a string.
+    * None means that only the new value submitted will be saved and will overwrite the previously saved value.
+    * Numerical fields will be checked for "Unknown."  If the value is "Unknown," the old server value, if any, will be used.
+    *      If the value is not "Unknown," the value will be converted to an integer.
+    */
+    let props = {
+        starsAverage: {
+            accumulate: ["average"]
+        },
+        starsMax:{
+          accumulate: ["max"]
+        },
+        cubesAverage: {
+            accumulate: ["average"]
+        },
+        cubesMax: {
+            accumulate: ["max"]
+        },
+        autonPlay: {
+            accumulate: ["append"],
+            uniqueOnly: true
+        },
+        hang: {
+            accumulate: ["append"],
+            uniqueOnly: false
+        },
+        sturdiness: {
+            accumulate: ["count"]
+        },
+        dropsObjects: {
+            accumulate: ["count"]
+        },
+        lastScouted: {
+            accumulate: ["none"]
+        },
+        scoredObjs: {
+            accumulate: ["special-scoredObj"]
+        },
+        scoringDevices: {
+            accumulate: ["count"]
+        },
+        strafes: {
+            accumulate: ["none"]
+        },
+        Team: {
+            accumulate: ["none"]
+        },
+        autonSwing: {
+            accumulate: ["min","max","average"]
+        },
+        autonStartTime: {
+            accumulate: ["min","max","average"]
+        }
+    };
     console.log(tournamentId,orgId,scoutingInfo);
     //get scouting info for this team, if it exists
     fbQueue.database().ref("scouting/" + orgId + "/" + tournamentId + "/" + scoutingInfo.Team).once("value").then(function (snapshot) {
         let currentTeamData = snapshot.val();
         console.log("currentTeamData",currentTeamData);
-        if (currentTeamData != null) {
-            for (let prop in scoutingInfo) {
-                if (scoutingInfo.hasOwnProperty(prop)) {
-                    if (prop === "Team") {
-                        result[prop] = scoutingInfo[prop];
-                    } else {
-                        if (prop === "Auton play" || prop === "Hang" || prop === "Auton start time" || prop === "Auton swing (pts)" || prop === "Last scouting in" ||
-                            prop === "Cubes held" || prop === "Stars held" || prop === "Sturdiness of scoring device" || prop === "Scores every (s)" ||
-                            prop === "Drops objects") {
-                            console.log("prop",prop);
-                            console.log("currentTeamData[prop]",currentTeamData[prop]);
-                            console.log("scoutingInfo[prop]",scoutingInfo[prop]);
-                            //console.log("scoutingInfo[prop].indexOf('Unknown in')",scoutingInfo[prop].indexOf("Unknown in"));
-                            if (typeof scoutingInfo[prop] === "string" && scoutingInfo[prop].indexOf("Unknown in") > -1) {
-                                result[prop] = currentTeamData[prop];
-                            } else {
-                                result[prop] = currentTeamData[prop] + " | " + scoutingInfo[prop];
-                            }
-                        } else if (prop === "scoredObjs") {
-                            console.log("inside scoredObjs else");
-                            let scoringInfo = parseScoredObjs(scoutingInfo.scoredObjs);
-                            console.log(scoringInfo);
-                            result["Scores every (s)"] = currentTeamData["Scores every (s)"] + " | " + round(scoringInfo.avgScoreTime,2);
-                            result["Scores in"] = currentTeamData["Scores in"] + " | " + round(scoringInfo.percentFar,1) + "% far, " + round(scoringInfo.percentNear,1) + "% near, " +
-                                round(scoringInfo.percentNone,1) + "% neutral zone (based on " + scoringInfo.numScores + " objects)";
-                        } else {
-                            result[prop] = scoutingInfo[prop];
-                        }
+        let noCurrentTeamData = currentTeamData == null;
+        for (let prop in scoutingInfo) {
+            if (scoutingInfo.hasOwnProperty(prop)) {
+                console.log("now processing", prop);
+                let currAccumulate;
+                let oldValue, newValue;
+                result[prop] = {};
+                for (let i = 0; i < props[prop].accumulate.length; i++) {
+                    currAccumulate = props[prop].accumulate[i];
+                    if (checkPropForUnknown(scoutingInfo[prop])) { //if the value is unknown, skip it
+                        continue;
                     }
-                }
-            }
-        } else {
-            console.log("inside else");
-            for (let prop in scoutingInfo) {
-                if (scoutingInfo.hasOwnProperty(prop)) {
-                    console.log(prop);
-                    if (prop === "Team") {
-                        result[prop] = scoutingInfo[prop];
-                    } else if (prop === "Auton play" || prop === "Hang" || prop === "Auton start time" || prop === "Auton swing (pts)" || prop === "Last scouting in" ||
-                        prop === "Cubes held" || prop === "Stars held" || prop === "Sturdiness of scoring device" || prop === "Scores every (s)" ||
-                        prop === "Drops objects") {
-                        if (prop === "Hang" && scoutingInfo[prop].indexOf("Unknown in") > -1) {
-                            result[prop] = "";
-                        } else {
+                    console.log("processing accumulate", currAccumulate);
+                    if (currAccumulate === "min") {
+                        result[prop].min = getMinValue(currentTeamData, prop, scoutingInfo,noCurrentTeamData);
+                    } else if (currAccumulate === "max") {
+                        result[prop].max = getMaxValue(currentTeamData,prop,scoutingInfo,noCurrentTeamData);
+                    } else if (currAccumulate === "average") {
+                        result[prop].average = getNewAverage(currentTeamData,prop,scoutingInfo,noCurrentTeamData);
+                    } else if (currAccumulate === "none") {
+                        if (!checkPropForUnknown(scoutingInfo[prop])) {
                             result[prop] = scoutingInfo[prop];
                         }
-                    } else if (prop === "scoredObjs") {
-                        console.log("inside scoredObjs else");
-                        let scoringInfo = parseScoredObjs(scoutingInfo.scoredObjs);
-                        console.log(scoringInfo);
-                        result["Scores every (s)"] = round(scoringInfo.avgScoreTime,2);
-                        result["Scores in"] = round(scoringInfo.percentFar,1) + "% far, " + round(scoringInfo.percentNear,1) + "% near, " +
-                            round(scoringInfo.percentNone,1) + "% neutral zone (based on " + scoringInfo.numScores + " objects)";
-                    } else {
-                        result[prop] = scoutingInfo[prop];
+                    } else if (currAccumulate === "count") {
+                        result[prop] = getCounts(currentTeamData,prop,scoutingInfo,noCurrentTeamData);
+                    } else if (currAccumulate === "append") {
+                        result[prop]= getAppend(currentTeamData,prop,scoutingInfo,noCurrentTeamData,props[prop].uniqueOnly);
+                    } else if (currAccumulate === "special-scoredObj") {
+                        result[prop] = getScoredObjAnalysis(currentTeamData,prop,scoutingInfo,noCurrentTeamData);
                     }
                 }
             }

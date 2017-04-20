@@ -62,8 +62,9 @@ function getTeamMatchesVexDb(res, sku, teamNum) {
 }
 
 //Precondition: the caller must verify that the user is authorized to receive starred teams data
-function getUnscoredMatches(res, sku, num,getStarred) {
-    request("https://api.vexdb.io/v1/get_matches?scored=0&limit_number=" + num + "&sku=" + sku, (error, response, body) => {
+function getUnscoredMatches(res, sku, num,getStarred, division="") {
+    let divisionString = (division === "") ? "" : "&division="  + division;
+    request("https://api.vexdb.io/v1/get_matches?" + division +"&scored=0&limit_number=" + num + "&sku=" + sku, (error, response, body) => {
         var raw = body;
         var parsed = JSON.parse(raw);
         var results = {
@@ -293,7 +294,11 @@ function getTournamentScoutingInfo(db,org,tourney) {
 function getScoutingProp(prop, team, scoutingInfo) {
     if (scoutingInfo != null) {
         if (Object.keys(scoutingInfo).indexOf(team) > -1) { //if there's scouting info for this team
-            return scoutingInfo[team][prop];
+             try {
+                  return JSON.stringify(scoutingInfo[team][prop]); //use of JSON.stringify from http://stackoverflow.com/a/5612849/5434744
+             } catch (e) {
+                 return scoutingInfo[team][prop];
+             }
         }
     }
     return "";
@@ -342,19 +347,23 @@ router.post('/pretournament/fetch', function (req, res, next) {
         console.log(340);
         let result = [];
 
-        /*             {"title": "Max CS" },
-         {"title": "Max RS"},
-         {"title": "Max PS" },
-         {"title": "Scoring" },
-         {"title": "Scores in" },
-         {"title": "Scores every (s)" },
+        /*
+         {"title": "Last scouted match" },
+         {"title": "Robot type" },
          {"title": "Claw sturdiness" },
-         {"title": "Stars held" },
-         {"title": "Cubes held" },
-         {"title": "Drops objects" },
          {"title": "Auton. swing" },
          {"title": "Auton play." },
-         {"title": "Hang" },*/
+         {"title": "Score stats },
+         {"title": "Avg. stars held" },
+         {"title": "Max stars held" },
+         {"title": "Avg. cubes held" },
+         {"title": "Max cubes held" },
+         {"title": "Drops objects" },
+         {"title": "Strafes" },
+         {"title": "Hang" },
+         {"title": "Max CS" },
+         {"title": "Max RS"},
+         {"title": "Max PS" },*/
         //get scouting info for teams
         getTournamentScoutingInfo(db,orgId,tournament).then(function (scoutingInfoSnapshot) {
             let scoutingInfo = scoutingInfoSnapshot.val();
@@ -363,11 +372,24 @@ router.post('/pretournament/fetch', function (req, res, next) {
             //skillsData is based off of team list for tournament, so this includes all the teams at the tournament
                 for (let team in skillsData) {
                     if (skillsData.hasOwnProperty(team) && team !== "dateCollected") {
-                        result.push([skillsData[team].team, null, skillsData[team].maxTotal, skillsData[team].maxRobot, skillsData[team].maxProg, [getScoutingProp("Last scouted in", team, scoutingInfo)], [getScoutingProp("Scoring device(s)", team, scoutingInfo)],
-                            [getScoutingProp("Scores in", team, scoutingInfo)], [getScoutingProp("Scores every (s)", team, scoutingInfo)],
-                            [getScoutingProp("Sturdiness of scoring device", team, scoutingInfo)], [getScoutingProp("Stars held", team, scoutingInfo)],
-                            [getScoutingProp("Cubes held", team, scoutingInfo)], [getScoutingProp("Drops objects", team, scoutingInfo)], [getScoutingProp("Auton swing (pts)", team, scoutingInfo)], [getScoutingProp("Auton play", team, scoutingInfo)],
-                            [getScoutingProp("Hang", team, scoutingInfo)]]);
+                        result.push([skillsData[team].team, null,
+                            [getScoutingProp("lastScouted", team, scoutingInfo)],
+                            [getScoutingProp("scoringDevices", team, scoutingInfo)],
+                            [getScoutingProp("sturdiness", team, scoutingInfo)],
+                            [getScoutingProp("autonSwing", team, scoutingInfo)],
+                            [getScoutingProp("autonPlay", team, scoutingInfo)],
+                            [getScoutingProp("scoredObjs", team, scoutingInfo)],
+                            [getScoutingProp("starsAverage", team, scoutingInfo)],
+                            [getScoutingProp("starsMax", team, scoutingInfo)],
+                            [getScoutingProp("cubesAverage", team, scoutingInfo)],
+                            [getScoutingProp("cubesMax", team, scoutingInfo)],
+                            [getScoutingProp("dropsObjects", team, scoutingInfo)],
+                            [getScoutingProp("cubesMax", team, scoutingInfo)],
+                            [getScoutingProp("strafes", team, scoutingInfo)],
+                            [getScoutingProp("hang", team, scoutingInfo)],
+                            skillsData[team].maxTotal,
+                            skillsData[team].maxRobot,
+                            skillsData[team].maxProg]);
                     }
                 }
 
@@ -579,6 +601,50 @@ router.get('/:sku/unscored/:num', (req, res, next) => {
     }
 
 });
+
+router.get('/:sku/:division/unscored/:num', (req,res,next) => {
+    res.set('Content-Type', 'application/json');
+    console.log(req.query.highlight);
+    //console.log(req.query.token.length);
+    let getStarredTeams = null;
+    let orgId;
+    if (req.query.highlight == null) {
+        console.log("don't show starred teams");
+        getStarredTeams = -1;
+        getUnscoredMatches(res, req.params.sku, parseInt(req.params.num),getStarredTeams,req.params.division);
+    } else {
+        console.log("show starred teams for " + req.query.highlight);
+        getStarredTeams = req.query.highlight;
+        let tournament = getStarredTeams;
+        let db = starredTeamsFetchFbApp.database();
+        let token = req.query.token;
+        db.ref("/tournaments/" + tournament + "/organization").once("value").then(function(snapshot) {
+            orgId = snapshot.val();
+            if (orgId !== null) { //Success - we got something back
+                return admin.auth().verifyIdToken(token);
+            } else {
+                Promise.reject("invalid org id returned"); //stop and throw an error; the organization supplied probably doesn't exist
+            }
+        }).then(function(decodedToken) {
+            uid = decodedToken.uid;
+            return db.ref("/organizations/" + orgId + "/users/" + uid).once("value");
+        }).then(function(snapshot) { //verify that this user is listed as a member on the organization that the tournament belongs to
+            console.log(snapshot.val());
+            let authResult = snapshot.val();
+            if (authResult !== null) {
+                return getUnscoredMatches(res, req.params.sku, parseInt(req.params.num),getStarredTeams,req.params.division);
+            } else {
+                Promise.reject("The user is not authorized to perform this action: ERR_USER_NOT_AUTHORIZED");
+            }
+            return true;
+        }).catch(function (error) {
+            console.error("Server error: " + error.message);
+            res.status(500);
+            res.send({"result":"error","status":0,"message":error.message});
+        });
+    }
+
+})
 router.get('/:sku/match/:round/:instance/:num', (req,res,next) => {
     res.set('Content-Type', 'application/json');
     getMatch(res, req.params.sku, parseInt(req.params.round), parseInt(req.params.instance), parseInt(req.params.num));
