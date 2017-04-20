@@ -1,3 +1,6 @@
+//This file uses code from https://developers.google.com/web/fundamentals/engage-and-retain/web-app-manifest/, which is licensed under
+//the Apache License 2.0.  The code here has been modified from the original version at developers.google.com.  Parts of the code have been modified from their original versions.
+
 {
   "short_name": "WARS",
   "name": "WA Robotics Scout",
@@ -11,5 +14,5 @@
     }
   ],
   "theme_color": "#607D8B",
-  "background_color":"607D8B"
+  "background_color":"#607D8B"
 }

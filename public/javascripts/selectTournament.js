@@ -173,6 +173,7 @@ function getUserOrgs() {
         globalInfo.userorgs = snapshot.val().userorgs;
         fillOrgSelect(globalInfo.userorgs);
     });
+    //initPushNotification();
 }
 
 function firebaseInit() {

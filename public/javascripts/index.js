@@ -8,18 +8,7 @@
       });
 
       $("#match-container").on("click","div > div.match-info-card div.mdl-card__title > button.star-match-btn","",matchToggleStar);
-
-      if ('serviceWorker' in navigator) {
-          window.addEventListener('load', function() {
-              navigator.serviceWorker.register('pushService.js').then(function(registration) {
-                  // Registration was successful
-                  console.log('ServiceWorker registration successful with scope: ', registration.scope);
-              }).catch(function(err) {
-                  // registration failed :(
-                  console.log('ServiceWorker registration failed: ', err);
-              });
-          });
-      }
+      serviceWorkerInit();
 
   });
   var page = "index"; //so getUserDefaults in global.js can know to call getTeamMatches when it's done
@@ -78,6 +67,13 @@
       if (value.results.length === 0) {
           $("#match-container").append("<i class='material-icons'>info_outline</i> No matches found for this team");
       }
+
+      //get division for this team and save to Firebase
+      var division = value.results[0].division;
+      firebase.database().ref("/tournaments/" + userDefaults.tournament + "/divisions/" + queryTeam).set(division).then(function(s) {
+          console.log("saved team division successfully");
+      });
+
       for (var i = 0; i < value.results.length; i++) {
           currentMatch = value.results[i];
           console.log(currentMatch);

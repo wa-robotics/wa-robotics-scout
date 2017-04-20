@@ -21,4 +21,5 @@ firebase.auth().onAuthStateChanged(function (user) {
 
 $(document).ready(function() {
     componentHandler.upgradeAllRegistered(); //to make sure the loading spinner appears and not just "Loading..."
+
 });
