@@ -39,7 +39,7 @@ function processResults (team,alliance,value) {
                     console.log(value);
                     console.log("prop", prop);
                     propertyValue = prop;
-                    output += '<tr><td>' + propertyValue + '</td><td>' + value[prop] + '</td></tr>';
+                    output += '<tr><td>' + JSON.stringify(propertyValue) + '</td><td>' + JSON.stringify(value[prop]) + '</td></tr>';
                 }
             }
 
@@ -133,8 +133,10 @@ function setRankInfo(data) {
 }
 
 function getRankInfo(team) {
-    $.ajax('/api/' + sku + '/rank/' + team, {
-        success:setRankInfo
+    firebase.database().ref("/tournaments/" + userDefaults.tournament + "/divisions/" + userDefaults.team).once("value").then(function(snapshot) {
+        $.ajax('/api/' + sku + "/" + snapshot.val() + '/rank/' + team, {
+            success: setRankInfo
+        });
     });
 }
 
@@ -213,8 +215,10 @@ function getScoutingInfo(matchData) {
 
 function getTeamsInMatch(sku) {
     var matchnum = parseInt(qmatch);
-    $.ajax('/api/' + sku + '/match/2/1/' + qmatch, {
-        success:getScoutingInfo
+    firebase.database().ref("/tournaments/" + userDefaults.tournament + "/divisions/" + userDefaults.team).once("value").then(function(snapshot) {
+        $.ajax('/api/' + sku + "/division/" + snapshot.val() + '/match/2/1/' + qmatch, {
+            success: getScoutingInfo
+        });
     });
 }
 var page = "matchInfo";
