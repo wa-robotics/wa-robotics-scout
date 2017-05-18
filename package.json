@@ -10,7 +10,7 @@
     "basic-auth": "^1.1.0",
     "body-parser": "^1.16.1",
     "cookie-parser": "~1.4.3",
-    "debug": "~2.6.0",
+    "debug": "~2.6.8",
     "ejs": "~2.5.6",
     "express": "~5.0.0-alpha.4",
     "firebase": "^3.6.9",
